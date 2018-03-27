@@ -1,0 +1,58 @@
+var _jaredramirez$elm_form$Field_Int$lessThan = function (x) {
+	return A2(
+		_jaredramirez$elm_form$Field$test,
+		function (value) {
+			return _elm_lang$core$Native_Utils.cmp(value, x) < 0;
+		},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'Must be at less than ',
+			_elm_lang$core$Basics$toString(x)));
+};
+var _jaredramirez$elm_form$Field_Int$greaterThan = function (x) {
+	return A2(
+		_jaredramirez$elm_form$Field$test,
+		function (value) {
+			return _elm_lang$core$Native_Utils.cmp(value, x) > 0;
+		},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'Must be at greater than ',
+			_elm_lang$core$Basics$toString(x)));
+};
+var _jaredramirez$elm_form$Field_Int$atMost = function (x) {
+	return A2(
+		_jaredramirez$elm_form$Field$test,
+		function (value) {
+			return function (v) {
+				return _elm_lang$core$Native_Utils.cmp(v, x) < 1;
+			}(
+				_elm_lang$core$String$length(
+					_elm_lang$core$Basics$toString(value)));
+		},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'Must be at least ',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_elm_lang$core$Basics$toString(x),
+				'digits')));
+};
+var _jaredramirez$elm_form$Field_Int$atLeast = function (x) {
+	return A2(
+		_jaredramirez$elm_form$Field$test,
+		function (value) {
+			return function (v) {
+				return _elm_lang$core$Native_Utils.cmp(v, x) > -1;
+			}(
+				_elm_lang$core$String$length(
+					_elm_lang$core$Basics$toString(value)));
+		},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'Must be at least ',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_elm_lang$core$Basics$toString(x),
+				'digits')));
+};

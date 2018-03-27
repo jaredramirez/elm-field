@@ -1,0 +1,259 @@
+[
+  {
+    "name": "Field.String",
+    "comment": " A pre-applied `String` version of the `Field` type, and validation function\nto go along with them.\n\n\n# Base\n\n@docs StringField, StringValidationFunc\n\n\n# Validation\n\n@docs required, email, atLeast, atMost, exactly, optional\n\n",
+    "aliases": [
+      {
+        "name": "StringField",
+        "comment": " A field to hold a `String` value, with an error type of `String`\n",
+        "args": [],
+        "type": "Field.Field String String"
+      },
+      {
+        "name": "StringValidationFunc",
+        "comment": " A validation function for a `StringField`\n",
+        "args": [],
+        "type": "Field.ValidationFunc String String"
+      }
+    ],
+    "types": [],
+    "values": [
+      {
+        "name": "atLeast",
+        "comment": " Enforce that a field is at least `x` long\n",
+        "type": "Int -> Field.String.StringValidationFunc"
+      },
+      {
+        "name": "atMost",
+        "comment": " Enforce that a field is at most `x` long\n",
+        "type": "Int -> Field.String.StringValidationFunc"
+      },
+      {
+        "name": "email",
+        "comment": " Enforce that a field is an email.\n\nThe format the email just follow is:\n\n    [ >1 upper,lower,digit,symbol ]@[ >2 upper,lower,digit,symbol ].[ >2 upper,lower ]\n\nTo validate emails, we don't use regex we use\n[elm-tools/parser](https://github.com/elm-tools/parser) to validate. If\nthere's a specific format you need your emails to follow, you can easily implement your\nown validation function.\n\n    let\n        field = Valid \"hello\"\n    in\n        -- will result in `Invalid \"Invalid email\" \"hello\"`\n        email field\n\n    let\n        field = Valid \"foo@bar.com\"\n    in\n        -- will result in `Valid \"foo@bar.com\"`\n        email field\n\n",
+        "type": "Field.String.StringField -> Field.String.StringField"
+      },
+      {
+        "name": "exactly",
+        "comment": " Enforce that a field is exactly `x` long\n",
+        "type": "Int -> Field.String.StringValidationFunc"
+      },
+      {
+        "name": "optional",
+        "comment": " A validation function wrapper that will only run the `StringValidationFunc` provided\nif the field is not `\"\"`\n\n    let\n        emailField = Valid \"\"\n    in\n        -- will be Valid \"\"\n        optional email emailField\n\n    let\n        emailField = Valid \"hello\"\n    in\n        -- will be Invalid \"Invalid email\" \"hello\"\n        optional email emailField\n\n    let\n        emailField = Valid \"foo@bar.com\"\n    in\n        -- will be Valid \"foo@bar.com\"\n        optional email emailField\n\n",
+        "type": "Field.String.StringValidationFunc -> Field.String.StringValidationFunc"
+      },
+      {
+        "name": "required",
+        "comment": " Enforces that a field is required\n\n    let\n        field = Valid \"\"\n    in\n        -- will result in `Invalid \"Required\" \"\"`\n        required field\n\n",
+        "type": "Field.String.StringField -> Field.String.StringField"
+      }
+    ],
+    "generated-with-elm-version": "0.18.0"
+  },
+  {
+    "name": "Field.Float",
+    "comment": " A pre-applied `Float` version of the `Field` type, and validation function\nto go along with them.\n\n\n# Base\n\n@docs FloatField, FloatValidationFunc\n\n\n# Validation\n\n@docs greaterThan, lessThan\n\n",
+    "aliases": [
+      {
+        "name": "FloatField",
+        "comment": " A field to hold a `String` value, with an error type of `String`\n",
+        "args": [],
+        "type": "Field.Field String Float"
+      },
+      {
+        "name": "FloatValidationFunc",
+        "comment": " A validation function for a `StringField`\n",
+        "args": [],
+        "type": "Field.ValidationFunc String Float"
+      }
+    ],
+    "types": [],
+    "values": [
+      {
+        "name": "greaterThan",
+        "comment": " Enforce that a field is greater than `x`\n",
+        "type": "Float -> Field.Float.FloatValidationFunc"
+      },
+      {
+        "name": "lessThan",
+        "comment": " Enforce that a field is greater than `x`\n",
+        "type": "Float -> Field.Float.FloatValidationFunc"
+      }
+    ],
+    "generated-with-elm-version": "0.18.0"
+  },
+  {
+    "name": "Field.Bool",
+    "comment": " A pre-applied `Float` version of the `Field` type, and validation function\nto go along with them.\n\n\n# Base\n\n@docs BoolField, BoolValidationFunc\n\n\n# Validation\n\n@docs isTrue, isFalse\n\n",
+    "aliases": [
+      {
+        "name": "BoolField",
+        "comment": " A field to hold a `String` value, with an error type of `String`\n",
+        "args": [],
+        "type": "Field.Field String Bool"
+      },
+      {
+        "name": "BoolValidationFunc",
+        "comment": " A validation function for a `StringField`\n",
+        "args": [],
+        "type": "Field.ValidationFunc String Bool"
+      }
+    ],
+    "types": [],
+    "values": [
+      {
+        "name": "isFalse",
+        "comment": " Enforce that a field is true\n",
+        "type": "Field.Bool.BoolValidationFunc"
+      },
+      {
+        "name": "isTrue",
+        "comment": " Enforce that a field is true\n",
+        "type": "Field.Bool.BoolValidationFunc"
+      }
+    ],
+    "generated-with-elm-version": "0.18.0"
+  },
+  {
+    "name": "Field.Int",
+    "comment": " A pre-applied `Int` version of the `Field` type, and validation function\nto go along with them.\n\n\n# Base\n\n@docs IntField, IntValidationFunc\n\n\n# Validation\n\n@docs atLeast, atMost, greaterThan, lessThan\n\n",
+    "aliases": [
+      {
+        "name": "IntField",
+        "comment": " A field to hold a `String` value, with an error type of `String`\n",
+        "args": [],
+        "type": "Field.Field String Int"
+      },
+      {
+        "name": "IntValidationFunc",
+        "comment": " A validation function for a `StringField`\n",
+        "args": [],
+        "type": "Field.ValidationFunc String Int"
+      }
+    ],
+    "types": [],
+    "values": [
+      {
+        "name": "atLeast",
+        "comment": " Enforce that the a field is at least `x` digits long\n",
+        "type": "Int -> Field.Int.IntValidationFunc"
+      },
+      {
+        "name": "atMost",
+        "comment": " Enforce that a field is at most `x` digits long\n",
+        "type": "Int -> Field.Int.IntValidationFunc"
+      },
+      {
+        "name": "greaterThan",
+        "comment": " Enforce that a field is greater than `x`\n",
+        "type": "Int -> Field.Int.IntValidationFunc"
+      },
+      {
+        "name": "lessThan",
+        "comment": " Enforce that a field is greater than `x`\n",
+        "type": "Int -> Field.Int.IntValidationFunc"
+      }
+    ],
+    "generated-with-elm-version": "0.18.0"
+  },
+  {
+    "name": "Field",
+    "comment": " This library provides a datatype, and accompaning functions, to easily model input\nfield data.\n\nTo use this data type, let's say that you need to have an email input that is required.\n\nFirst, you can create a field in your model\n\n    type alias Model =\n        { email : StringField }\n\nThen, you a message to set that field to a value\n\n    type Msg\n        = SetEmailField String\n\nNext, you add logic to set & validate the field to your update function\n\n    update : Msg -> Model -> Model\n    update msg model =\n        case msg of\n            SetEmailField value ->\n                { model\n                    | emailField =\n                        set model.emailField value\n                            |> require\n                            |> email\n                }\n\nFinally, wire it into the view!\n\n    view : Model -> Html Msg\n    view model =\n        Html.div []\n            [ Html.h1 []\n                [ Html.text \"Form Example\" ]\n            , case model.emailField of\n                Valid value ->\n                    Html.input\n                        [ Html.Events.onClick SetEmailField\n                        , Html.Attributes.value value\n                        ]\n                        []\n\n                Invalid errorMessage value ->\n                    Html.div []\n                        [ Html.span []\n                            [ Html.text errorMessage ]\n                        , Html.input\n                            [ Html.Events.onClick SetEmailField\n                            , Html.Attributes.value value\n                            ]\n                            []\n                        ]\n\n                Disabled value ->\n                    Html.input\n                        [ Html.Attributes.value value\n                        , Html.Attributes.disabled True\n                        ]\n                        []\n            ]\n\nTo see a complete example that handles multiple fields and does some action on\nsubmit, take a look [at this]()\n\n\n# Base\n\n@docs Field\n\n\n# Interacting with fields\n\n@docs set, extract, toMaybe, withDefault, isValid, isInvalid, isDisabled\n\n\n# Validation\n\n@docs ValidationFunc, test, sequence, noValidation\n\n",
+    "aliases": [
+      {
+        "name": "ValidationFunc",
+        "comment": " Type alias that takes a field, and returns a field\n\nThis is the same type as a partially applied [`test`](#test), after a validation test and\nerror message have been applied\n\n",
+        "args": [
+          "error",
+          "value"
+        ],
+        "type": "Field.Field error value -> Field.Field error value"
+      }
+    ],
+    "types": [
+      {
+        "name": "Field",
+        "comment": " The field type, it represents all the possible state that a field\ncan be in. It has take parameters of an error type and a value type.\n\nUnless you're trying to model some unique data you probably won't be using this\ntype, but a type with these arguements already applied. Take a look at\nat [`Field.String`](#Field-String).\n\n",
+        "args": [
+          "err",
+          "value"
+        ],
+        "cases": [
+          [
+            "Valid",
+            [
+              "value"
+            ]
+          ],
+          [
+            "Invalid",
+            [
+              "err",
+              "value"
+            ]
+          ],
+          [
+            "Disabled",
+            [
+              "value"
+            ]
+          ]
+        ]
+      }
+    ],
+    "values": [
+      {
+        "name": "extract",
+        "comment": " Extract a value from a field, regardless of that field's status\n",
+        "type": "Field.Field error value -> value"
+      },
+      {
+        "name": "isDisabled",
+        "comment": " If the field passed in is `Disabled` return `True`, otherwise `False`\n",
+        "type": "Field.Field error value -> Bool"
+      },
+      {
+        "name": "isInvalid",
+        "comment": " If the field passed in is `Invalid` return `True`, otherwise `False`\n",
+        "type": "Field.Field error value -> Bool"
+      },
+      {
+        "name": "isValid",
+        "comment": " If the field passed in is `Valid` return `True`, otherwise `False`\n",
+        "type": "Field.Field error value -> Bool"
+      },
+      {
+        "name": "noValidation",
+        "comment": " This is an alias for identity, and reperesents an noop validation function.\nThis may seem odd, but can be useful in conjunction with optional fields and\n[`sequence`](#sequence)\n",
+        "type": "Field.ValidationFunc error value"
+      },
+      {
+        "name": "sequence",
+        "comment": " This is a function to provide an easy way to validate multiple fields.\nIt takes a list of tuples like `(ValidationFunc, Field)`, and returns a tuple of\nwhether all the fields are `Valid`, and a list of the validated fields.\n\nIt goes through the list provided, and applies each validation function to each field.\nThen, if any single field is `Invalid` then returns `(False, fields)` otherwise `(True, fields)`\n\n    let\n        emailField =\n            Valid \"go@gina.com\"\n\n        firstNameField =\n            Valid \"Gina\"\n\n        lastNameField =\n           Valid \"\"\n    in\n        -- will result in\n        -- (False, [ Valid \"go@gina.com\", Valid \"Gina\", Invalid \"Required\" \"\"])\n        sequence\n            [ (required >> email, emailField)\n            , (required, firstNameField)\n            , (required, lastNameField)\n            ]\n\n",
+        "type": "List ( Field.ValidationFunc error value, Field.Field error value ) -> ( Bool, List (Field.Field error value) )"
+      },
+      {
+        "name": "set",
+        "comment": " Set a field to a new value, unless the field is `Disabled`\n\n    -- will result in `Valid \"goodbye\"\n    set (Valid \"hello\") \"goodbye\"\n\n    -- will result in `Valid 11`\n    set (Invalid \"This is an error message\" 10) 11\n\n    -- will result in `Disabled \"Ha, ha!\"`\n    set (Disabled \"Ha, ha!\") \"ABC\"\n\n",
+        "type": "Field.Field error value -> value -> Field.Field error value"
+      },
+      {
+        "name": "test",
+        "comment": " Test a field against the provided function. If it passes then return the field,\notherwise return an `Invalid` field with the error provided.\n\nLook to the [`String`](#String) and [`Number`](#Number) modules for pre-created\nvalidation functions.\n\n",
+        "type": "(value -> Bool) -> error -> Field.ValidationFunc error value"
+      },
+      {
+        "name": "toMaybe",
+        "comment": " Convert a `Field` to a `Maybe`\n\n    -- will result in `Just 7`\n    toMaybe (Valid 7)\n\n    -- will result in `Nothing`\n    toMaybe (Disabled 7)\n\n",
+        "type": "Field.Field error value -> Maybe.Maybe value"
+      },
+      {
+        "name": "withDefault",
+        "comment": " Unwrap the value of a field if it is `Valid`, otherwise get the default value\n\n    -- will result in `\"Lamar\"`\n    withDefault \"kendrick\" (Valid \"Lamar\")\n\n    -- will result in `\"Cardi\"`\n    withDefault \"Cardi\" (Invalid \"Error!\" \"B\")\n\n",
+        "type": "value -> Field.Field error value -> value"
+      }
+    ],
+    "generated-with-elm-version": "0.18.0"
+  }
+]

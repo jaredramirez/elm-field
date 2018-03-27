@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "summary": "Handling forms & validaton easily.",
+  "repository": "https://github.com/jaredramirez/elm-form.git",
+  "license": "BSD3",
+  "source-directories": ["src"],
+  "exposed-modules": [
+    "Field",
+    "Field.String",
+    "Field.Int",
+    "Field.Float",
+    "Field.Bool"
+  ],
+  "dependencies": {
+    "elm-lang/core": "5.1.1 <= v < 6.0.0",
+    "elm-tools/parser": "2.0.1 <= v < 3.0.0"
+  },
+  "elm-version": "0.18.0 <= v < 0.19.0"
+}

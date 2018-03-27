@@ -1,0 +1,6 @@
+var _jaredramirez$elm_form$Inter$Invalid = function (a) {
+	return {ctor: 'Invalid', _0: a};
+};
+var _jaredramirez$elm_form$Inter$Valid = function (a) {
+	return {ctor: 'Valid', _0: a};
+};

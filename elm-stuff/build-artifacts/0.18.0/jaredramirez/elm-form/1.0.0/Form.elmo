@@ -1,0 +1,9 @@
+var _jaredramirez$elm_form$Form$Disabled = {ctor: 'Disabled'};
+var _jaredramirez$elm_form$Form$Invalid = F2(
+	function (a, b) {
+		return {ctor: 'Invalid', _0: a, _1: b};
+	});
+var _jaredramirez$elm_form$Form$Valid = function (a) {
+	return {ctor: 'Valid', _0: a};
+};
+var _jaredramirez$elm_form$Form$Empty = {ctor: 'Empty'};

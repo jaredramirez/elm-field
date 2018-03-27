@@ -1,0 +1,101 @@
+var _jaredramirez$elm_form$Field$noValidation = _elm_lang$core$Basics$identity;
+var _jaredramirez$elm_form$Field$isDisabled = function (field) {
+	var _p0 = field;
+	if (_p0.ctor === 'Disabled') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var _jaredramirez$elm_form$Field$isInvalid = function (field) {
+	var _p1 = field;
+	if (_p1.ctor === 'Invalid') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var _jaredramirez$elm_form$Field$isValid = function (field) {
+	var _p2 = field;
+	if (_p2.ctor === 'Valid') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var _jaredramirez$elm_form$Field$sequence = function (list) {
+	var validatedFields = A2(
+		_elm_lang$core$List$map,
+		function (_p3) {
+			var _p4 = _p3;
+			return _p4._0(_p4._1);
+		},
+		list);
+	var areFieldsValid = A2(
+		_elm_lang$core$List$any,
+		function (_p5) {
+			return !_jaredramirez$elm_form$Field$isValid(_p5);
+		},
+		validatedFields);
+	return {ctor: '_Tuple2', _0: areFieldsValid, _1: validatedFields};
+};
+var _jaredramirez$elm_form$Field$withDefault = F2(
+	function ($default, field) {
+		var _p6 = field;
+		if (_p6.ctor === 'Valid') {
+			return _p6._0;
+		} else {
+			return $default;
+		}
+	});
+var _jaredramirez$elm_form$Field$toMaybe = function (field) {
+	var _p7 = field;
+	if (_p7.ctor === 'Valid') {
+		return _elm_lang$core$Maybe$Just(_p7._0);
+	} else {
+		return _elm_lang$core$Maybe$Nothing;
+	}
+};
+var _jaredramirez$elm_form$Field$extract = function (field) {
+	var _p8 = field;
+	switch (_p8.ctor) {
+		case 'Valid':
+			return _p8._0;
+		case 'Invalid':
+			return _p8._1;
+		default:
+			return _p8._0;
+	}
+};
+var _jaredramirez$elm_form$Field$Disabled = function (a) {
+	return {ctor: 'Disabled', _0: a};
+};
+var _jaredramirez$elm_form$Field$Invalid = F2(
+	function (a, b) {
+		return {ctor: 'Invalid', _0: a, _1: b};
+	});
+var _jaredramirez$elm_form$Field$test = F3(
+	function (predicate, error, field) {
+		var _p9 = field;
+		if (_p9.ctor === 'Valid') {
+			var _p10 = _p9._0;
+			return predicate(_p10) ? field : A2(_jaredramirez$elm_form$Field$Invalid, error, _p10);
+		} else {
+			return field;
+		}
+	});
+var _jaredramirez$elm_form$Field$Valid = function (a) {
+	return {ctor: 'Valid', _0: a};
+};
+var _jaredramirez$elm_form$Field$set = F2(
+	function (field, newValue) {
+		var _p11 = field;
+		switch (_p11.ctor) {
+			case 'Valid':
+				return _jaredramirez$elm_form$Field$Valid(newValue);
+			case 'Invalid':
+				return _jaredramirez$elm_form$Field$Valid(newValue);
+			default:
+				return field;
+		}
+	});
