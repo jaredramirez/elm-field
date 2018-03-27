@@ -1,7 +1,0 @@
-var _jaredramirez$elm_form$Field_Bool$isFalse = A2(
-	_jaredramirez$elm_form$Field$test,
-	function (_p0) {
-		return !_elm_lang$core$Basics$identity(_p0);
-	},
-	'Must be false');
-var _jaredramirez$elm_form$Field_Bool$isTrue = A2(_jaredramirez$elm_form$Field$test, _elm_lang$core$Basics$identity, 'Must be true');
