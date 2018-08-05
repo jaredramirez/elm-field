@@ -1,12 +1,12 @@
 module Field.String
     exposing
-        ( StringField
-        , StringValidationFunc
-        , required
-        , email
+        ( Field
+        , ValidationFunc
         , atLeast
         , atMost
+        , email
         , exactly
+        , notEmpty
         , optional
         )
 
@@ -16,44 +16,37 @@ to go along with them.
 
 # Base
 
-@docs StringField, StringValidationFunc
+@docs Field, ValidationFunc
 
 
 # Validation
 
-@docs required, email, atLeast, atMost, exactly, optional
+@docs notEmpty, email, atLeast, atMost, exactly, optional
 
 -}
 
 import Char
-import Parser as P exposing ((|=), (|.))
 import Field as F exposing (Field)
+import Parser as P exposing ((|.), (|=))
 
 
 {-| A field to hold a `String` value, with an error type of `String`
 -}
-type alias StringField =
-    Field String String
+type alias Field =
+    F.Field String String
 
 
-{-| A validation function for a `StringField`
+{-| A validation function for a string `Field`
 -}
-type alias StringValidationFunc =
+type alias ValidationFunc =
     F.ValidationFunc String String
 
 
-{-| Enforces that a field is required
-
-    let
-        field = Valid ""
-    in
-        -- will result in `Invalid "Required" ""`
-        required field
-
+{-| Enforces that a field is not empty
 -}
-required : StringField -> StringField
-required =
-    F.test ((==) "") "Required"
+notEmpty : ValidationFunc
+notEmpty =
+    F.test ((/=) "") "Can't be empty"
 
 
 {-| Enforce that a field is an email.
@@ -67,20 +60,8 @@ To validate emails, we don't use regex we use
 there's a specific format you need your emails to follow, you can easily implement your
 own validation function.
 
-    let
-        field = Valid "hello"
-    in
-        -- will result in `Invalid "Invalid email" "hello"`
-        email field
-
-    let
-        field = Valid "foo@bar.com"
-    in
-        -- will result in `Valid "foo@bar.com"`
-        email field
-
 -}
-email : StringField -> StringField
+email : ValidationFunc
 email =
     F.test
         (\value ->
@@ -88,7 +69,11 @@ email =
                 Ok _ ->
                     True
 
-                Err _ ->
+                Err err ->
+                    let
+                        f =
+                            Debug.log "error" err
+                    in
                     False
         )
         "Invalid email"
@@ -96,12 +81,11 @@ email =
 
 emailParser : P.Parser String
 emailParser =
-    P.succeed (\main at domain dot com -> main ++ at ++ domain ++ dot ++ com)
-        |= P.keep (P.oneOrMore) (\c -> isAlphaNum c || isSymbol c)
-        |= P.keep (P.Exactly 1) (\c -> c == '@')
+    P.succeed (\main at domain dot -> main ++ at ++ domain ++ toString dot)
         |= P.keep (P.AtLeast 2) (\c -> isAlphaNum c || isSymbol c)
-        |= P.keep (P.Exactly 1) (\c -> c == '.')
-        |= P.keep (P.AtLeast 2) (\c -> isAlphaNum c)
+        |= P.keep (P.Exactly 1) (\c -> c == '@')
+        |= P.keep (P.AtLeast 2) (\c -> isAlphaNum c || isSymbolWithoutPeriod c)
+        |= P.symbol "."
         |. P.end
 
 
@@ -110,13 +94,10 @@ isAlphaNum c =
     Char.isLower c || Char.isUpper c || Char.isDigit c
 
 
-isSymbol : Char -> Bool
-isSymbol c =
+isSymbolWithoutPeriod : Char -> Bool
+isSymbolWithoutPeriod c =
     case c of
         ',' ->
-            True
-
-        '.' ->
             True
 
         ';' ->
@@ -135,65 +116,49 @@ isSymbol c =
             False
 
 
-{-| Enforce that a field is at least `x` long
+isSymbol : Char -> Bool
+isSymbol c =
+    if isSymbol c then
+        True
+    else if c == '.' then
+        True
+    else
+        False
+
+
+{-| Enforce that a field is at least `x` characters long
 -}
-atLeast : Int -> StringValidationFunc
+atLeast : Int -> ValidationFunc
 atLeast x =
     F.test (\value -> String.length value >= x)
-        ("Must be at least " ++ toString x ++ "characters")
+        ("Must be at least " ++ toString x ++ " characters")
 
 
-{-| Enforce that a field is at most `x` long
+{-| Enforce that a field is at most `x` characters long
 -}
-atMost : Int -> StringValidationFunc
+atMost : Int -> ValidationFunc
 atMost x =
     F.test (\value -> String.length value <= x)
-        ("Must be at most " ++ toString x ++ "characters")
+        ("Must be at most " ++ toString x ++ " characters")
 
 
-{-| Enforce that a field is exactly `x` long
+{-| Enforce that a field is exactly `x` characters long
 -}
-exactly : Int -> StringValidationFunc
+exactly : Int -> ValidationFunc
 exactly x =
     F.test (\value -> String.length value <= x)
-        ("Must be at exactly " ++ toString x ++ "characters")
+        ("Must be at exactly " ++ toString x ++ " characters")
 
 
-{-| A validation function wrapper that will only run the `StringValidationFunc` provided
-if the field is not `""`
-
-    let
-        emailField = Valid ""
-    in
-        -- will be Valid ""
-        optional email emailField
-
-    let
-        emailField = Valid "hello"
-    in
-        -- will be Invalid "Invalid email" "hello"
-        optional email emailField
-
-    let
-        emailField = Valid "foo@bar.com"
-    in
-        -- will be Valid "foo@bar.com"
-        optional email emailField
-
+{-| A validation function wrapper that will only run the `ValidationFunc` if the provided
+if the field's value is not `""`. If the field's value is `""` then this will just return the
+field
 -}
-optional :
-    StringValidationFunc
-    -> StringValidationFunc
+optional : ValidationFunc -> ValidationFunc
 optional validationFunction field =
-    case field of
-        F.Valid "" ->
-            F.Valid ""
+    case F.extractValue field of
+        "" ->
+            field
 
-        F.Invalid error "" ->
-            F.Invalid error ""
-
-        F.Disabled "" ->
-            F.Disabled ""
-
-        f ->
-            validationFunction f
+        _ ->
+            validationFunction field

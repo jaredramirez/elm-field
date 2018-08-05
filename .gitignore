@@ -1,2 +1,5 @@
 elm-stuff/
 documentation.json
+tests/elm-stuff/
+
+yarn-error.log

@@ -2,11 +2,11 @@ module Field.Bool
     exposing
         ( BoolField
         , BoolValidationFunc
-        , isTrue
         , isFalse
+        , isTrue
         )
 
-{-| A pre-applied `Float` version of the `Field` type, and validation function
+{-| A pre-applied `Bool` version of the `Field` type, and validation functions
 to go along with them.
 
 
@@ -27,24 +27,24 @@ import Field as F exposing (Field)
 {-| A field to hold a `String` value, with an error type of `String`
 -}
 type alias BoolField =
-    Field String Bool
+    Field Bool String
 
 
-{-| A validation function for a `StringField`
+{-| A validation function for a Bool `Field`
 -}
 type alias BoolValidationFunc =
-    F.ValidationFunc String Bool
+    F.ValidationFunc Bool String
 
 
 {-| Enforce that a field is true
 -}
 isTrue : BoolValidationFunc
 isTrue =
-    F.test identity ("Must be true")
+    F.test identity "Must be true"
 
 
 {-| Enforce that a field is true
 -}
 isFalse : BoolValidationFunc
 isFalse =
-    F.test (identity >> not) ("Must be false")
+    F.test (identity >> not) "Must be false"

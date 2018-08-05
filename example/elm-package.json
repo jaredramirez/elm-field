@@ -1,18 +1,13 @@
 {
     "version": "1.0.0",
-    "summary": "Handling forms & validaton easily.",
-    "repository": "https://github.com/jaredramirez/elm-field.git",
+    "summary": "helpful summary of your project, less than 80 characters",
+    "repository": "https://github.com/user/project.git",
     "license": "BSD3",
     "source-directories": [
-        "src"
+        ".",
+        "../src"
     ],
-    "exposed-modules": [
-        "Field",
-        "Field.String",
-        "Field.Int",
-        "Field.Float",
-        "Field.Bool"
-    ],
+    "exposed-modules": [],
     "dependencies": {
         "elm-lang/core": "5.1.1 <= v < 6.0.0",
         "elm-lang/html": "2.0.0 <= v < 3.0.0",

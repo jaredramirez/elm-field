@@ -6,7 +6,7 @@ module Field.Float
         , lessThan
         )
 
-{-| A pre-applied `Float` version of the `Field` type, and validation function
+{-| A pre-applied `Float` version of the `Field` type, and validation functions
 to go along with them.
 
 
@@ -27,13 +27,13 @@ import Field as F exposing (Field)
 {-| A field to hold a `String` value, with an error type of `String`
 -}
 type alias FloatField =
-    Field String Float
+    Field Float String
 
 
-{-| A validation function for a `StringField`
+{-| A validation function for a Float `Field`
 -}
 type alias FloatValidationFunc =
-    F.ValidationFunc String Float
+    F.ValidationFunc Float String
 
 
 {-| Enforce that a field is greater than `x`

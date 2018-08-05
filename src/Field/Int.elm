@@ -1,46 +1,48 @@
 module Field.Int
     exposing
-        ( IntField
-        , IntValidationFunc
+        ( Field
+        , ValidationFunc
         , atLeast
         , atMost
         , greaterThan
+        , greaterThanOrEqual
         , lessThan
+        , lessThanOrEqual
         )
 
-{-| A pre-applied `Int` version of the `Field` type, and validation function
+{-| A pre-applied `Int` version of the `Field` type, and validation functions
 to go along with them.
 
 
 # Base
 
-@docs IntField, IntValidationFunc
+@docs Field, ValidationFunc
 
 
 # Validation
 
-@docs atLeast, atMost, greaterThan, lessThan
+@docs atLeast, atMost, greaterThan, greaterThanOrEqual, lessThan, lessThanOrEqual
 
 -}
 
 import Field as F exposing (Field)
 
 
-{-| A field to hold a `String` value, with an error type of `String`
+{-| A field to hold a `Int` value, with an error type of `String`
 -}
-type alias IntField =
-    Field String Int
+type alias Field =
+    F.Field Int String
 
 
-{-| A validation function for a `StringField`
+{-| A validation function for an Int `Field`
 -}
-type alias IntValidationFunc =
-    F.ValidationFunc String Int
+type alias ValidationFunc =
+    F.ValidationFunc Int String
 
 
 {-| Enforce that the a field is at least `x` digits long
 -}
-atLeast : Int -> IntValidationFunc
+atLeast : Int -> ValidationFunc
 atLeast x =
     F.test
         (\value ->
@@ -54,7 +56,7 @@ atLeast x =
 
 {-| Enforce that a field is at most `x` digits long
 -}
-atMost : Int -> IntValidationFunc
+atMost : Int -> ValidationFunc
 atMost x =
     F.test
         (\value ->
@@ -68,17 +70,35 @@ atMost x =
 
 {-| Enforce that a field is greater than `x`
 -}
-greaterThan : Int -> IntValidationFunc
+greaterThan : Int -> ValidationFunc
 greaterThan x =
     F.test
         (\value -> value > x)
         ("Must be at greater than " ++ toString x)
 
 
-{-| Enforce that a field is greater than `x`
+{-| Enforce that a field is greater than or equal to `x`
 -}
-lessThan : Int -> IntValidationFunc
+greaterThanOrEqual : Int -> ValidationFunc
+greaterThanOrEqual x =
+    F.test
+        (\value -> value >= x)
+        ("Must be at greater than or equal to " ++ toString x)
+
+
+{-| Enforce that a field is less than `x`
+-}
+lessThan : Int -> ValidationFunc
 lessThan x =
     F.test
         (\value -> value < x)
         ("Must be at less than " ++ toString x)
+
+
+{-| Enforce that a field is less than or equal to `x`
+-}
+lessThanOrEqual : Int -> ValidationFunc
+lessThanOrEqual x =
+    F.test
+        (\value -> value <= x)
+        ("Must be at less than or equal to " ++ toString x)

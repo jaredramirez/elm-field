@@ -1,224 +1,321 @@
 module Field
     exposing
-        ( Field(Valid, Invalid, Disabled)
-        , set
-        , extract
-        , withDefault
-        , toMaybe
-        , isValid
-        , isInvalid
-        , isDisabled
+        ( Field
+        , Metadata
         , ValidationFunc
-        , sequence
-        , test
+        , ViewConfig
+        , extractMetadata
+        , extractValue
+        , init
+        , isInvalid
+        , isValid
         , noValidation
+        , resetMetadata
+        , resetValue
+        , test
+        , toMaybe
+        , toResult
+        , view
+        , withDefault
         )
 
-{-| This library provides a datatype, and accompaning functions, to easily model input
-field data.
+{-| This library provides a datatype to model input field data.
 
-To use this data type, let's say that you need to have an email input that is required.
+To use this data type, let's say that you need a sign up form that has a requried name field,
+a required email field, and an age field that must be between 18 & 100 that you need to send
+to your server after it's validated.
 
-First, you can create a field in your model
+First, you can import the package and create the fields in your model
+
+    ... other imports
+    import Elm.Field as F
+    import Elm.Field.String as FStr
+    import Elm.Field.Int as FInt
 
     type alias Model =
-        { email : StringField }
+        { name : FStr.Field
+        , email : FStr.Field
+        , age : FInt.Field
+        }
 
-Then, you a message to set that field to a value
+    init : Model
+    init =
+        { name = F.init ""
+        , email = F.init ""
+        , age = F.init 0
+        }
+
+Then, you add a few messages to update the fields, and one to submit your form
 
     type Msg
-        = SetEmailField String
+        = SetNameField String
+        | SetEmailField String
+        | SetAgeField Int
+        | Submit
 
-Next, you add logic to set & validate the field to your update function
+Next, you add logic to set & validate the fields to your update function
 
-    update : Msg -> Model -> Model
+    update : Msg -> Model -> (Model, Cmd Msg)
     update msg model =
         case msg of
+            SetNameField value ->
+                { model
+                    | name =
+                        value
+                            |> F.resetValue model.name
+                            |> validateName
+                } ! []
+
             SetEmailField value ->
                 { model
-                    | emailField =
-                        set model.emailField value
-                            |> require
-                            |> email
-                }
+                    | email =
+                        value
+                            |> F.resetValue model.email
+                            |> validateEmail
+                } ! []
+
+            SetAgeField value ->
+                { model
+                    | age =
+                        value
+                            |> F.resetValue model.age
+                            |> validateAge
+                } ! []
+
+            Submit ->
+                let
+                    name = validateName model.name
+
+                    email = validateEmail model.email
+
+                    age = validateEmail model.age
+
+                    cmds=
+                        case (F.toResult name, F.toResult email, F.toResult age) of
+                            (Ok nameValue, Ok, emailValue, Ok ageValue) ->
+                                [ ...some command... ]
+
+                            _ ->
+                                []
+
+                in
+                    { model
+                        | name = name
+                        , email = email
+                        , age = age
+                    } ! cmds
+
+    validateName : F.ValidationFunc
+    validateName =
+        FStr.notEmpty
+
+    validateEmail : F.ValidationFunc
+    validateEmail =
+        FStr.notEmpty >> FStr.email
+
+    validateAge : F.ValidationFunc
+    validateAge =
+        FInt.greaterThan 18 >> FInt.atMost 100
 
 Finally, wire it into the view!
 
     view : Model -> Html Msg
     view model =
         Html.div []
-            [ Html.h1 []
-                [ Html.text "Form Example" ]
-            , case model.emailField of
-                Valid value ->
-                    Html.input
-                        [ Html.Events.onClick SetEmailField
-                        , Html.Attributes.value value
-                        ]
-                        []
+            [ Html.h1 [] [ Html.text "Sign Up!" ]
+            , F.view (fieldConfig "Name" SetNameField) model.name
+            , F.view (fieldConfig "Email" SetEmailField) model.email
+            , F.view (fieldConfig "Age" SetAgeField) model.age
+            ]
 
-                Invalid errorMessage value ->
+        viewConfig : String -> msg -> F.ViewConfig
+        viewConfig title msg =
+            { valid  =
+                \meta value ->
                     Html.div []
-                        [ Html.span []
-                            [ Html.text errorMessage ]
-                        , Html.input
-                            [ Html.Events.onClick SetEmailField
+                        [ Html.input
+                            [ Html.Events.onClick msg
                             , Html.Attributes.value value
+                            , Html.Attributes.disabled meta.disabled
                             ]
                             []
                         ]
 
-                Disabled value ->
-                    Html.input
-                        [ Html.Attributes.value value
-                        , Html.Attributes.disabled True
+            , invalid =
+                \meta value errorMessage ->
+                    Html.div []
+                        [ Html.span []
+                            [ Html.text errorMessage ]
+                        , Html.input
+                            [ Html.Events.onClick msg
+                            , Html.Attributes.value value
+                            , Html.Attributes.disabled meta.disabled
+                            ]
+                            []
                         ]
-                        []
-            ]
-
-To see a complete example that handles multiple fields and does some action on
-submit, take a look [at this]()
+            }
 
 
 # Base
 
-@docs Field
+@docs Field, Metadata
+
+
+# Viewing fields
+
+@docs ViewConfig, view
 
 
 # Interacting with fields
 
-@docs set, extract, toMaybe, withDefault, isValid, isInvalid, isDisabled
+@docs init, resetValue, extractValue, resetMetadata, extractMetadata, toMaybe, toResult, withDefault, isValid, isInvalid
 
 
 # Validation
 
-@docs ValidationFunc, test, sequence, noValidation
+@docs ValidationFunc, test, noValidation
 
 -}
+
+import Html exposing (Html)
 
 
 {-| The field type, it represents all the possible state that a field
 can be in. It has take parameters of an error type and a value type.
 
 Unless you're trying to model some unique data you probably won't be using this
-type, but a type with these arguements already applied. Take a look at
+type, but one with the `value` and `error` arguements already applied. Take a look at
 at [`Field.String`](#Field-String).
 
 -}
-type Field err value
-    = Valid value
-    | Invalid err value
-    | Disabled value
+type Field value error
+    = Field value Metadata (Status error)
 
 
-{-| Set a field to a new value, unless the field is `Disabled`
+type Status error
+    = Valid
+    | Invalid error
 
-    -- will result in `Valid "goodbye"
-    set (Valid "hello") "goodbye"
 
-    -- will result in `Valid 11`
-    set (Invalid "This is an error message" 10) 11
-
-    -- will result in `Disabled "Ha, ha!"`
-    set (Disabled "Ha, ha!") "ABC"
-
+{-| A type to reperesent various bits of data about any individiual field. You can get this recode
+from a field with [`extractMetadata`](#extractMetadata), and set this record with [`resetMetadata`](#resetMetadata)
 -}
-set : Field error value -> value -> Field error value
-set field newValue =
-    case field of
-        Valid _ ->
-            Valid newValue
-
-        Invalid _ _ ->
-            Valid newValue
-
-        Disabled _ ->
-            field
+type alias Metadata =
+    { touched : Bool
+    , active : Bool
+    , disabled : Bool
+    }
 
 
-{-| Extract a value from a field, regardless of that field's status
+{-| A mapping from different field statuses to `Html`
 -}
-extract : Field error value -> value
-extract field =
-    case field of
-        Valid value ->
-            value
-
-        Invalid _ value ->
-            value
-
-        Disabled value ->
-            value
+type alias ViewConfig value error msg =
+    { valid : Metadata -> value -> Html msg
+    , invalid : Metadata -> value -> error -> Html msg
+    }
 
 
-{-| Convert a `Field` to a `Maybe`
-
-    -- will result in `Just 7`
-    toMaybe (Valid 7)
-
-    -- will result in `Nothing`
-    toMaybe (Disabled 7)
-
+{-| Takes a `ViewConfig` and a field and uses the different possible `Html` based on the field's status
 -}
-toMaybe : Field error value -> Maybe value
-toMaybe field =
-    case field of
-        Valid value ->
+view : ViewConfig value error msg -> Field value error -> Html msg
+view viewMap (Field value meta status) =
+    case status of
+        Valid ->
+            viewMap.valid meta value
+
+        Invalid error ->
+            viewMap.invalid meta value error
+
+
+{-| Create a new field with the given value that is in a valid status
+-}
+init : value -> Field value error
+init value =
+    Field value { touched = False, active = False, disabled = False } Valid
+
+
+{-| Reset a field with a new value, _and_ set it to the valid status
+-}
+resetValue : Field value error -> value -> Field value error
+resetValue ((Field _ meta _) as field) newValue =
+    Field newValue meta Valid
+
+
+{-| Extract the metadata from a field, regardless of the field's status
+-}
+extractValue : Field value error -> value
+extractValue (Field value _ _) =
+    value
+
+
+{-| Reset a field with new metadata
+-}
+resetMetadata : Field value error -> Metadata -> Field value error
+resetMetadata ((Field value _ status) as field) newMetadata =
+    Field value newMetadata status
+
+
+{-| Extract the value from a field, regardless of the field's status
+-}
+extractMetadata : Field value error -> Metadata
+extractMetadata (Field _ metadata _) =
+    metadata
+
+
+{-| Convert a field to a `Maybe`. This discards the `error`.
+-}
+toMaybe : Field value error -> Maybe value
+toMaybe (Field value _ status) =
+    case status of
+        Valid ->
             Just value
 
-        _ ->
+        Invalid _ ->
             Nothing
 
 
-{-| Unwrap the value of a field if it is `Valid`, otherwise get the default value
-
-    -- will result in `"Lamar"`
-    withDefault "kendrick" (Valid "Lamar")
-
-    -- will result in `"Cardi"`
-    withDefault "Cardi" (Invalid "Error!" "B")
-
+{-| Convert a field to a `Result`
 -}
-withDefault : value -> Field error value -> value
-withDefault default field =
-    case field of
-        Valid value ->
+toResult : Field value error -> Result error value
+toResult (Field value _ status) =
+    case status of
+        Valid ->
+            Ok value
+
+        Invalid error ->
+            Err error
+
+
+{-| Return the value of a field if it is in a valid status, otherwise get the default value provided
+-}
+withDefault : value -> Field value error -> value
+withDefault default (Field value _ status) =
+    case status of
+        Valid ->
             value
 
-        _ ->
+        Invalid _ ->
             default
 
 
-{-| If the field passed in is `Valid` return `True`, otherwise `False`
+{-| Returns true if the field in currently in a valid state, false otherwise
 -}
-isValid : Field error value -> Bool
-isValid field =
-    case field of
-        Valid _ ->
+isValid : Field value error -> Bool
+isValid (Field value meta status) =
+    case status of
+        Valid ->
             True
 
-        _ ->
+        Invalid _ ->
             False
 
 
-{-| If the field passed in is `Invalid` return `True`, otherwise `False`
+{-| Returns true if the field in currently in a invalid state, false otherwise
 -}
-isInvalid : Field error value -> Bool
-isInvalid field =
-    case field of
-        Invalid _ _ ->
-            True
-
-        _ ->
-            False
-
-
-{-| If the field passed in is `Disabled` return `True`, otherwise `False`
--}
-isDisabled : Field error value -> Bool
-isDisabled field =
-    case field of
-        Disabled _ ->
+isInvalid : Field value error -> Bool
+isInvalid (Field value meta status) =
+    case status of
+        Invalid _ ->
             True
 
         _ ->
@@ -231,78 +328,38 @@ isDisabled field =
 
 {-| Type alias that takes a field, and returns a field
 
-This is the same type as a partially applied [`test`](#test), after a validation test and
-error message have been applied
+This is the same type as a what a validation function will return
 
 -}
-type alias ValidationFunc error value =
-    Field error value -> Field error value
+type alias ValidationFunc value error =
+    Field value error -> Field value error
 
 
-{-| This is a function to provide an easy way to validate multiple fields.
-It takes a list of tuples like `(ValidationFunc, Field)`, and returns a tuple of
-whether all the fields are `Valid`, and a list of the validated fields.
-
-It goes through the list provided, and applies each validation function to each field.
-Then, if any single field is `Invalid` then returns `(False, fields)` otherwise `(True, fields)`
-
-    let
-        emailField =
-            Valid "go@gina.com"
-
-        firstNameField =
-            Valid "Gina"
-
-        lastNameField =
-           Valid ""
-    in
-        -- will result in
-        -- (False, [ Valid "go@gina.com", Valid "Gina", Invalid "Required" ""])
-        sequence
-            [ (required >> email, emailField)
-            , (required, firstNameField)
-            , (required, lastNameField)
-            ]
-
--}
-sequence :
-    List ( ValidationFunc error value, Field error value )
-    -> ( Bool, List (Field error value) )
-sequence list =
-    let
-        validatedFields =
-            List.map (\( func, field ) -> func field) list
-
-        areFieldsValid =
-            List.any (isValid >> not) validatedFields
-    in
-        ( areFieldsValid, validatedFields )
-
-
-{-| Test a field against the provided function. If it passes then return the field,
-otherwise return an `Invalid` field with the error provided.
+{-| Test a valid field against the provided function. If it passes then return the field the exact same,
+otherwise return a field marked as invalid with the provided error. If the field is already invalid,
+then this function just returns the field as it got it. This is to keep the exisitng error, so you can
+chain together validation functions easily.
 
 Look to the [`String`](#String) and [`Number`](#Number) modules for pre-created
 validation functions.
 
 -}
-test : (value -> Bool) -> error -> ValidationFunc error value
-test predicate error field =
-    case field of
-        Valid value ->
+test : (value -> Bool) -> error -> ValidationFunc value error
+test predicate error ((Field value meta status) as field) =
+    case status of
+        Valid ->
             if predicate value then
                 field
             else
-                Invalid error value
+                Field value meta (Invalid error)
 
-        _ ->
+        Invalid _ ->
             field
 
 
 {-| This is an alias for identity, and reperesents an noop validation function.
-This may seem odd, but can be useful in conjunction with optional fields and
-[`sequence`](#sequence)
+This may seem odd, but can be useful when working with optional fields
 -}
-noValidation : ValidationFunc error value
+noValidation : ValidationFunc value error
 noValidation =
     identity
