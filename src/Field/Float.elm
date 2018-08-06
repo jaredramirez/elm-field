@@ -1,7 +1,8 @@
 module Field.Float
     exposing
-        ( FloatField
-        , FloatValidationFunc
+        ( Field
+        , ValidationFunc
+        , ViewConfig
         , greaterThan
         , lessThan
         )
@@ -12,7 +13,7 @@ to go along with them.
 
 # Base
 
-@docs FloatField, FloatValidationFunc
+@docs Field, ViewConfig, ValidationFunc
 
 
 # Validation
@@ -21,24 +22,30 @@ to go along with them.
 
 -}
 
-import Field as F exposing (Field)
+import Field as F
 
 
-{-| A field to hold a `String` value, with an error type of `String`
+{-| A field to hold a `Float` value, with an error type of `String`. See [`Field`](#Field)
 -}
-type alias FloatField =
-    Field Float String
+type alias Field =
+    F.Field Float String
+
+
+{-| A view config object for Float fields. See [`ViewConfig`](#ViewConfig)
+-}
+type alias ViewConfig msg =
+    F.ViewConfig Float String msg
 
 
 {-| A validation function for a Float `Field`
 -}
-type alias FloatValidationFunc =
+type alias ValidationFunc =
     F.ValidationFunc Float String
 
 
 {-| Enforce that a field is greater than `x`
 -}
-greaterThan : Float -> FloatValidationFunc
+greaterThan : Float -> ValidationFunc
 greaterThan x =
     F.test
         (\value -> value > x)
@@ -47,7 +54,7 @@ greaterThan x =
 
 {-| Enforce that a field is greater than `x`
 -}
-lessThan : Float -> FloatValidationFunc
+lessThan : Float -> ValidationFunc
 lessThan x =
     F.test
         (\value -> value < x)

@@ -1,6 +1,7 @@
 module Field.Int
     exposing
         ( Field
+        , ViewConfig
         , ValidationFunc
         , atLeast
         , atMost
@@ -16,7 +17,7 @@ to go along with them.
 
 # Base
 
-@docs Field, ValidationFunc
+@docs Field, ViewConfig, ValidationFunc
 
 
 # Validation
@@ -28,10 +29,16 @@ to go along with them.
 import Field as F exposing (Field)
 
 
-{-| A field to hold a `Int` value, with an error type of `String`
+{-| A field to hold a `Int` value, with an error type of `String`. See [`Field`](#Field)
 -}
 type alias Field =
     F.Field Int String
+
+
+{-| A view config object for Int fields. See [`ViewConfig`](#ViewConfig)
+-}
+type alias ViewConfig msg =
+    F.ViewConfig Int String msg
 
 
 {-| A validation function for an Int `Field`

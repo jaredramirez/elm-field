@@ -1,7 +1,8 @@
 module Field.Bool
     exposing
-        ( BoolField
-        , BoolValidationFunc
+        ( Field
+        , ValidationFunc
+        , ViewConfig
         , isFalse
         , isTrue
         )
@@ -12,7 +13,7 @@ to go along with them.
 
 # Base
 
-@docs BoolField, BoolValidationFunc
+@docs Field, ViewConfig, ValidationFunc
 
 
 # Validation
@@ -24,27 +25,33 @@ to go along with them.
 import Field as F exposing (Field)
 
 
-{-| A field to hold a `String` value, with an error type of `String`
+{-| A field to hold a `Bool` value, with an error type of `String`. See [`Field`](#Field)
 -}
-type alias BoolField =
-    Field Bool String
+type alias Field =
+    F.Field Bool String
+
+
+{-| A view config object for Bool fields. See [`ViewConfig`](#ViewConfig)
+-}
+type alias ViewConfig msg =
+    F.ViewConfig Bool String msg
 
 
 {-| A validation function for a Bool `Field`
 -}
-type alias BoolValidationFunc =
+type alias ValidationFunc =
     F.ValidationFunc Bool String
 
 
 {-| Enforce that a field is true
 -}
-isTrue : BoolValidationFunc
+isTrue : ValidationFunc
 isTrue =
-    F.test identity "Must be true"
+    F.test ((==) True) "Must be true"
 
 
 {-| Enforce that a field is true
 -}
-isFalse : BoolValidationFunc
+isFalse : ValidationFunc
 isFalse =
-    F.test (identity >> not) "Must be false"
+    F.test ((==) False) "Must be false"

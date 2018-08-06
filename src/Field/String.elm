@@ -2,11 +2,13 @@ module Field.String
     exposing
         ( Field
         , ValidationFunc
+        , ViewConfig
         , atLeast
         , atMost
         , email
         , exactly
         , notEmpty
+        , numeric
         , optional
         )
 
@@ -16,12 +18,12 @@ to go along with them.
 
 # Base
 
-@docs Field, ValidationFunc
+@docs Field, ViewConfig, ValidationFunc
 
 
 # Validation
 
-@docs notEmpty, email, atLeast, atMost, exactly, optional
+@docs notEmpty, email, numeric, atLeast, atMost, exactly, optional
 
 -}
 
@@ -30,13 +32,19 @@ import Field as F exposing (Field)
 import Parser as P exposing ((|.), (|=))
 
 
-{-| A field to hold a `String` value, with an error type of `String`
+{-| A field to hold a `String` value, with an error type of `String`. See [`Field`](#Field)
 -}
 type alias Field =
     F.Field String String
 
 
-{-| A validation function for a string `Field`
+{-| A view config object for String fields. See [`ViewConfig`](#ViewConfig)
+-}
+type alias ViewConfig msg =
+    F.ViewConfig String String msg
+
+
+{-| A validation function for a String `Field`
 -}
 type alias ValidationFunc =
     F.ValidationFunc String String
@@ -53,7 +61,7 @@ notEmpty =
 
 The format the email just follow is:
 
-    [ >1 upper,lower,digit,symbol ]@[ >2 upper,lower,digit,symbol ].[ >2 upper,lower ]
+    [ >1 upper,lower,digit,symbol ]@[ >2 upper,lower,digit,symbol ].[ >2 upper,lower,digit, ]
 
 To validate emails, we don't use regex we use
 [elm-tools/parser](https://github.com/elm-tools/parser) to validate. If
@@ -69,23 +77,20 @@ email =
                 Ok _ ->
                     True
 
-                Err err ->
-                    let
-                        f =
-                            Debug.log "error" err
-                    in
+                Err _ ->
                     False
         )
         "Invalid email"
 
 
-emailParser : P.Parser String
+emailParser : P.Parser ()
 emailParser =
-    P.succeed (\main at domain dot -> main ++ at ++ domain ++ toString dot)
-        |= P.keep (P.AtLeast 2) (\c -> isAlphaNum c || isSymbol c)
-        |= P.keep (P.Exactly 1) (\c -> c == '@')
-        |= P.keep (P.AtLeast 2) (\c -> isAlphaNum c || isSymbolWithoutPeriod c)
-        |= P.symbol "."
+    P.succeed ()
+        |. P.keep (P.AtLeast 2) (\c -> isAlphaNum c || isSymbol c)
+        |. P.keep (P.Exactly 1) (\c -> c == '@')
+        |. P.keep (P.AtLeast 2) (\c -> isAlphaNum c || isSymbolWithoutPeriod c)
+        |. P.symbol "."
+        |. P.keep (P.AtLeast 2) (\c -> isAlphaNum c)
         |. P.end
 
 
@@ -98,6 +103,9 @@ isSymbolWithoutPeriod : Char -> Bool
 isSymbolWithoutPeriod c =
     case c of
         ',' ->
+            True
+
+        '+' ->
             True
 
         ';' ->
@@ -118,12 +126,35 @@ isSymbolWithoutPeriod c =
 
 isSymbol : Char -> Bool
 isSymbol c =
-    if isSymbol c then
+    if isSymbolWithoutPeriod c then
         True
     else if c == '.' then
         True
     else
         False
+
+
+{-| Enforce that a field contains only numbers.
+-}
+numeric : ValidationFunc
+numeric =
+    F.test
+        (\value ->
+            case P.run numericParser value of
+                Ok _ ->
+                    True
+
+                Err _ ->
+                    False
+        )
+        "Must be numeric"
+
+
+numericParser : P.Parser ()
+numericParser =
+    P.succeed ()
+        |. P.keep (P.AtLeast 0) Char.isDigit
+        |. P.end
 
 
 {-| Enforce that a field is at least `x` characters long

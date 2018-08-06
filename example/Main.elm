@@ -1,173 +1,252 @@
 module Main exposing (..)
 
-import Html exposing (Html)
-import Html.Attributes as Attrs
-import Html.Events as Events
 import Field as F
-import Field.String as FStr
 import Field.Int as FInt
+import Field.String as FStr
+import Html exposing (Html)
+import Html.Attributes
+import Html.Events
+import Task
 
 
 type alias Model =
-    { firstNameField : FStr.StringField
-    , lastNameField : FStr.StringField
-    , emailField : FStr.StringField
-    , ageField : FInt.IntField
+    { name : FStr.Field
+    , email : FStr.Field
+    , age : FInt.Field
+    , extraInfo : FStr.Field
+    , submittedSuccessfully : Bool
     }
 
 
-init : Model
+init : ( Model, Cmd Msg )
 init =
-    { firstNameField = F.new "First Name" ""
-    , lastNameField = F.new "Last Name" ""
-    , emailField = F.new "Email" ""
-    , ageField = F.new "Age" 0
+    { name = F.init ""
+    , email = F.init ""
+    , age = F.init 0
+    , extraInfo = F.init ""
+    , submittedSuccessfully = False
     }
+        ! []
 
 
 type Msg
-    = SetFirstNameField String
-    | SetLastNameField String
+    = SetNameField String
     | SetEmailField String
     | SetAgeField String
+    | ToggleExtraInfoDisabled
+    | SetExtraInfoField String
+    | Submit
+    | SubmitResponse Bool
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SetFirstNameField newValue ->
+        SetNameField value ->
             { model
-                | firstNameField =
-                    F.set model.firstNameField newValue
-                        |> firstNameValidation
+                | name =
+                    value
+                        |> F.resetValue model.name
+                        |> validateName
             }
+                ! []
 
-        SetLastNameField newValue ->
+        SetEmailField value ->
             { model
-                | lastNameField =
-                    F.set model.lastNameField newValue
-                        |> lastNameValidation
+                | email =
+                    value
+                        |> F.resetValue model.email
+                        |> validateEmail
             }
+                ! []
 
-        SetEmailField newValue ->
+        SetAgeField value ->
             { model
-                | emailField =
-                    F.set model.emailField newValue
-                        |> emailValidation
+                | age =
+                    value
+                        |> (String.toInt >> Result.withDefault 0)
+                        |> F.resetValue model.age
+                        |> validateAge
             }
+                ! []
 
-        SetAgeField newValue ->
-            case String.toInt newValue of
-                Ok num ->
-                    { model
-                        | ageField =
-                            F.set model.ageField num
-                                |> ageValidation
-                    }
+        ToggleExtraInfoDisabled ->
+            let
+                metadata =
+                    F.extractMetadata model.extraInfo
+            in
+            { model
+                | extraInfo =
+                    F.resetMetadata
+                        model.extraInfo
+                        { metadata | disabled = not metadata.disabled }
+            }
+                ! []
 
-                Err _ ->
-                    { model
-                        | ageField =
-                            F.Invalid (F.extractMeta model.ageField) "Not a number"
-                    }
+        SetExtraInfoField value ->
+            { model
+                | extraInfo =
+                    value
+                        |> F.resetValue model.extraInfo
+                        |> validateExtraInfo
+            }
+                ! []
+
+        Submit ->
+            let
+                name =
+                    validateName model.name
+
+                email =
+                    validateEmail model.email
+
+                age =
+                    validateAge model.age
+
+                extraInfo =
+                    validateExtraInfo model.extraInfo
+
+                cmds =
+                    Result.map4
+                        (\nameValue emailValue ageValue extraInfoValue ->
+                            [ -- Mock a server request
+                              Task.perform SubmitResponse (Task.succeed True)
+                            ]
+                        )
+                        (F.toResult name)
+                        (F.toResult email)
+                        (F.toResult age)
+                        (F.toResult extraInfo)
+                        |> Result.withDefault
+                            [ -- Mock a server request
+                              Task.perform SubmitResponse (Task.succeed False)
+                            ]
+            in
+            { model
+                | name = name
+                , email = email
+                , age = age
+                , extraInfo = extraInfo
+            }
+                ! cmds
+
+        SubmitResponse response ->
+            { model | submittedSuccessfully = response } ! []
 
 
-firstNameValidation : FStr.StringValidationFunc
-firstNameValidation =
-    FStr.required
+validateName : FStr.ValidationFunc
+validateName =
+    FStr.notEmpty
 
 
-lastNameValidation : FStr.StringValidationFunc
-lastNameValidation =
-    FStr.required
+validateEmail : FStr.ValidationFunc
+validateEmail =
+    FStr.notEmpty >> FStr.email
 
 
-emailValidation : FStr.StringValidationFunc
-emailValidation =
-    FStr.required >> FStr.email
+validateAge : FInt.ValidationFunc
+validateAge =
+    FInt.greaterThanOrEqual 18 >> FInt.lessThan 100
 
 
-ageValidation : FInt.IntValidationFunc
-ageValidation =
-    FInt.greaterThan 18
+validateExtraInfo : FStr.ValidationFunc
+validateExtraInfo =
+    FStr.optional (FStr.numeric >> not15)
+
+
+not15 : FStr.ValidationFunc
+not15 =
+    F.test
+        (\value ->
+            if value /= "15" then
+                True
+            else
+                False
+        )
+        "Extra Info can't be \"15\""
 
 
 view : Model -> Html Msg
 view model =
-    Html.div
-        [ Attrs.style
-            [ ( "display", "flex" )
-            , ( "flex", "1" )
-            , ( "flex-direction", "column" )
-            , ( "justify-content", "space-around" )
-            , ( "alignItems", "center" )
-            , ( "height", "40vh" )
-            ]
+    Html.div []
+        [ Html.h1 [] [ Html.text "Sign Up!" ]
+        , F.view (stringFieldConfig "Name" SetNameField) model.name
+        , F.view (stringFieldConfig "Email" SetEmailField) model.email
+        , F.view (intFieldConfig "Age" SetAgeField) model.age
+        , Html.button [ Html.Events.onClick ToggleExtraInfoDisabled ]
+            [ Html.span [] [ Html.text "Toggle Extra Info Disabled" ] ]
+        , F.view (stringFieldConfig "Extra Info" SetExtraInfoField)
+            model.extraInfo
+        , Html.button [ Html.Events.onClick Submit ]
+            [ Html.span [] [ Html.text "Submit" ] ]
+        , Html.div [] <|
+            if model.submittedSuccessfully then
+                [ Html.span [] [ Html.text "Submited Successfully!" ] ]
+            else
+                []
         ]
-        [ Html.h1 []
-            [ Html.text "Form Example" ]
-        , viewInput SetFirstNameField identity model.firstNameField
-        , viewInput SetLastNameField identity model.lastNameField
-        , viewInput SetEmailField identity model.emailField
-        , viewInput SetAgeField toString model.ageField
-        ]
 
 
-inputStyle =
-    [ ( "width", "40vw" ) ]
-
-
-viewInput : (String -> msg) -> (message -> String) -> F.Field String message -> Html msg
-viewInput onInputMsg valueToString field =
-    case field of
-        F.Valid meta ->
+stringFieldConfig : String -> (String -> msg) -> FStr.ViewConfig msg
+stringFieldConfig title toMsg =
+    { valid =
+        \meta value ->
             Html.div []
-                [ Html.div []
-                    [ Html.span [] [ Html.text meta.name ] ]
-                , Html.input
-                    [ Events.onInput onInputMsg
-                    , Attrs.value (valueToString meta.value)
-                    , Attrs.style inputStyle
+                [ Html.input
+                    [ Html.Events.onInput toMsg
+                    , Html.Attributes.value value
+                    , Html.Attributes.disabled meta.disabled
                     ]
                     []
                 ]
-
-        F.Invalid meta errorMessage ->
+    , invalid =
+        \meta value errorMessage ->
             Html.div []
-                [ Html.div []
-                    [ Html.span [] [ Html.text meta.name ]
-                    , Html.span
-                        [ Attrs.style
-                            [ ( "marginLeft", "1vw" )
-                            , ( "color", "#ff6978" )
-                            ]
-                        ]
-                        [ Html.text errorMessage ]
+                [ Html.input
+                    [ Html.Events.onInput toMsg
+                    , Html.Attributes.value value
+                    , Html.Attributes.disabled meta.disabled
                     ]
-                , Html.input
-                    [ Events.onInput onInputMsg
-                    , Attrs.value (valueToString meta.value)
-                    , Attrs.style inputStyle
+                    []
+                , Html.span []
+                    [ Html.text errorMessage ]
+                ]
+    }
+
+
+intFieldConfig : String -> (String -> msg) -> FInt.ViewConfig msg
+intFieldConfig title toMsg =
+    { valid =
+        \meta value ->
+            Html.div []
+                [ Html.input
+                    [ Html.Events.onInput toMsg
+                    , Html.Attributes.value (toString value)
+                    , Html.Attributes.type_ "number"
+                    , Html.Attributes.disabled meta.disabled
                     ]
                     []
                 ]
-
-        F.Disabled meta ->
+    , invalid =
+        \meta value errorMessage ->
             Html.div []
-                [ Html.div []
-                    [ Html.span [] [ Html.text meta.name ] ]
-                , Html.input
-                    [ Attrs.value (valueToString meta.value)
-                    , Attrs.disabled True
-                    , Attrs.style inputStyle
+                [ Html.input
+                    [ Html.Events.onInput toMsg
+                    , Html.Attributes.value (toString value)
+                    , Html.Attributes.type_ "number"
+                    , Html.Attributes.disabled meta.disabled
                     ]
                     []
+                , Html.span []
+                    [ Html.text errorMessage ]
                 ]
+    }
 
 
 main =
-    Html.beginnerProgram
-        { model = init
+    Html.program
+        { init = init
         , view = view
         , update = update
+        , subscriptions = \_ -> Sub.none
         }

@@ -9,7 +9,6 @@ module Field
         , init
         , isInvalid
         , isValid
-        , noValidation
         , resetMetadata
         , resetValue
         , test
@@ -19,7 +18,7 @@ module Field
         , withDefault
         )
 
-{-| This library provides a datatype to model input field data.
+{-| This library provides a datatype to model and validate input field data.
 
 To use this data type, let's say that you need a sign up form that has a requried name field,
 a required email field, and an age field that must be between 18 & 100 that you need to send
@@ -28,9 +27,9 @@ to your server after it's validated.
 First, you can import the package and create the fields in your model
 
     ... other imports
-    import Elm.Field as F
-    import Elm.Field.String as FStr
-    import Elm.Field.Int as FInt
+    import Field as F
+    import Field.Int as FInt
+    import Field.String as FStr
 
     type alias Model =
         { name : FStr.Field
@@ -38,24 +37,26 @@ First, you can import the package and create the fields in your model
         , age : FInt.Field
         }
 
-    init : Model
+
+    init : ( Model, Cmd Msg )
     init =
         { name = F.init ""
         , email = F.init ""
         , age = F.init 0
         }
+            ! []
 
 Then, you add a few messages to update the fields, and one to submit your form
 
     type Msg
         = SetNameField String
         | SetEmailField String
-        | SetAgeField Int
+        | SetAgeField String
         | Submit
 
 Next, you add logic to set & validate the fields to your update function
 
-    update : Msg -> Model -> (Model, Cmd Msg)
+    update : Msg -> Model -> ( Model, Cmd Msg )
     update msg model =
         case msg of
             SetNameField value ->
@@ -64,7 +65,8 @@ Next, you add logic to set & validate the fields to your update function
                         value
                             |> F.resetValue model.name
                             |> validateName
-                } ! []
+                }
+                    ! []
 
             SetEmailField value ->
                 { model
@@ -72,50 +74,59 @@ Next, you add logic to set & validate the fields to your update function
                         value
                             |> F.resetValue model.email
                             |> validateEmail
-                } ! []
+                }
+                    ! []
 
             SetAgeField value ->
                 { model
                     | age =
                         value
+                            |> (String.toInt >> Result.withDefault 0)
                             |> F.resetValue model.age
                             |> validateAge
-                } ! []
+                }
+                    ! []
 
             Submit ->
                 let
-                    name = validateName model.name
+                    name =
+                        validateName model.name
 
-                    email = validateEmail model.email
+                    email =
+                        validateEmail model.email
 
-                    age = validateEmail model.age
+                    age =
+                        validateAge model.age
 
-                    cmds=
-                        case (F.toResult name, F.toResult email, F.toResult age) of
-                            (Ok nameValue, Ok, emailValue, Ok ageValue) ->
-                                [ ...some command... ]
+                    cmds =
+                        case ( F.toResult name, F.toResult email, F.toResult age ) of
+                            ( Ok nameValue, Ok emailValue, Ok ageValue ) ->
+                                [ ... some command ... ]
 
                             _ ->
                                 []
-
                 in
-                    { model
-                        | name = name
-                        , email = email
-                        , age = age
-                    } ! cmds
+                { model
+                    | name = name
+                    , email = email
+                    , age = age
+                }
+                    ! cmds
 
-    validateName : F.ValidationFunc
+
+    validateName : FStr.ValidationFunc
     validateName =
         FStr.notEmpty
 
-    validateEmail : F.ValidationFunc
+
+    validateEmail : FStr.ValidationFunc
     validateEmail =
         FStr.notEmpty >> FStr.email
 
-    validateAge : F.ValidationFunc
+
+    validateAge : FInt.ValidationFunc
     validateAge =
-        FInt.greaterThan 18 >> FInt.atMost 100
+        FInt.greaterThanOrEqual 18 >> FInt.lessThan 100
 
 Finally, wire it into the view!
 
@@ -123,37 +134,70 @@ Finally, wire it into the view!
     view model =
         Html.div []
             [ Html.h1 [] [ Html.text "Sign Up!" ]
-            , F.view (fieldConfig "Name" SetNameField) model.name
-            , F.view (fieldConfig "Email" SetEmailField) model.email
-            , F.view (fieldConfig "Age" SetAgeField) model.age
+            , F.view (stringFieldConfig "Name" SetNameField) model.name
+            , F.view (stringFieldConfig "Email" SetEmailField) model.email
+            , F.view (intFieldConfig "Age" SetAgeField) model.age
+            , Html.button [ Html.Events.onClick Submit ]
+                [ Html.span [] [ Html.text "Submit" ] ]
             ]
 
-        viewConfig : String -> msg -> F.ViewConfig
-        viewConfig title msg =
-            { valid  =
-                \meta value ->
-                    Html.div []
-                        [ Html.input
-                            [ Html.Events.onClick msg
-                            , Html.Attributes.value value
-                            , Html.Attributes.disabled meta.disabled
-                            ]
-                            []
+    stringFieldConfig : String -> (String -> msg) -> FStr.ViewConfig msg
+    stringFieldConfig title toMsg =
+        { valid =
+            \meta value ->
+                Html.div []
+                    [ Html.input
+                        [ Html.Events.onInput toMsg
+                        , Html.Attributes.value value
+                        , Html.Attributes.disabled meta.disabled
                         ]
+                        []
+                    ]
+        , invalid =
+            \meta value errorMessage ->
+                Html.div []
+                    [ Html.input
+                        [ Html.Events.onInput toMsg
+                        , Html.Attributes.value value
+                        , Html.Attributes.disabled meta.disabled
+                        ]
+                        []
+                    , Html.span []
+                        [ Html.text errorMessage ]
+                    ]
+        }
 
-            , invalid =
-                \meta value errorMessage ->
-                    Html.div []
-                        [ Html.span []
-                            [ Html.text errorMessage ]
-                        , Html.input
-                            [ Html.Events.onClick msg
-                            , Html.Attributes.value value
-                            , Html.Attributes.disabled meta.disabled
-                            ]
-                            []
+    intFieldConfig : String -> (String -> msg) -> FInt.ViewConfig msg
+    intFieldConfig title toMsg =
+        { valid =
+            \meta value ->
+                Html.div []
+                    [ Html.input
+                        [ Html.Events.onInput toMsg
+                        , Html.Attributes.value (toString value)
+                        , Html.Attributes.type_ "number"
+                        , Html.Attributes.disabled meta.disabled
                         ]
-            }
+                        []
+                    ]
+        , invalid =
+            \meta value errorMessage ->
+                Html.div []
+                    [ Html.input
+                        [ Html.Events.onInput toMsg
+                        , Html.Attributes.value (toString value)
+                        , Html.Attributes.type_ "number"
+                        , Html.Attributes.disabled meta.disabled
+                        ]
+                        []
+                    , Html.span []
+                        [ Html.text errorMessage ]
+                    ]
+        }
+
+In this example, we only use the built-in validators, but it's pretty
+simple to create your own validators too! Take a look at [an example](https://github.com/jaredramirez/elm-field/blob/master/example/Main.elm) to see a
+similar example to the one above but with a custom validator.
 
 
 # Base
@@ -173,7 +217,7 @@ Finally, wire it into the view!
 
 # Validation
 
-@docs ValidationFunc, test, noValidation
+@docs ValidationFunc, test
 
 -}
 
@@ -184,8 +228,7 @@ import Html exposing (Html)
 can be in. It has take parameters of an error type and a value type.
 
 Unless you're trying to model some unique data you probably won't be using this
-type, but one with the `value` and `error` arguements already applied. Take a look at
-at [`Field.String`](#Field-String).
+type, but one with the `value` and `error` arguements already applied. Take a look at the [`String`](#String), [`Int`](#Int) and other modules in this package to see some common types already appplied and for examples to modeling your own data.
 
 -}
 type Field value error
@@ -197,12 +240,12 @@ type Status error
     | Invalid error
 
 
-{-| A type to reperesent various bits of data about any individiual field. You can get this recode
+{-| A type to reperesent various bits of data about any individiual field. You can get this record
 from a field with [`extractMetadata`](#extractMetadata), and set this record with [`resetMetadata`](#resetMetadata)
 -}
 type alias Metadata =
-    { touched : Bool
-    , active : Bool
+    { active : Bool
+    , touched : Bool
     , disabled : Bool
     }
 
@@ -327,21 +370,17 @@ isInvalid (Field value meta status) =
 
 
 {-| Type alias that takes a field, and returns a field
-
-This is the same type as a what a validation function will return
-
 -}
 type alias ValidationFunc value error =
     Field value error -> Field value error
 
 
-{-| Test a valid field against the provided function. If it passes then return the field the exact same,
+{-| Test a field against the provided function. If the field passes then return the field the exact same,
 otherwise return a field marked as invalid with the provided error. If the field is already invalid,
 then this function just returns the field as it got it. This is to keep the exisitng error, so you can
 chain together validation functions easily.
 
-Look to the [`String`](#String) and [`Number`](#Number) modules for pre-created
-validation functions.
+Look to the [`String`](#String), [`Int`](#Int) and other modules in this package. for pre-created validation functions.
 
 -}
 test : (value -> Bool) -> error -> ValidationFunc value error
@@ -355,11 +394,3 @@ test predicate error ((Field value meta status) as field) =
 
         Invalid _ ->
             field
-
-
-{-| This is an alias for identity, and reperesents an noop validation function.
-This may seem odd, but can be useful when working with optional fields
--}
-noValidation : ValidationFunc value error
-noValidation =
-    identity
