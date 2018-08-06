@@ -7,6 +7,7 @@ module Field.String
         , atMost
         , email
         , exactly
+        , nonnumeric
         , notEmpty
         , numeric
         , optional
@@ -23,7 +24,7 @@ to go along with them.
 
 # Validation
 
-@docs notEmpty, email, numeric, atLeast, atMost, exactly, optional
+@docs notEmpty, email, numeric, nonnumeric, atLeast, atMost, exactly, optional
 
 -}
 
@@ -154,6 +155,29 @@ numericParser : P.Parser ()
 numericParser =
     P.succeed ()
         |. P.keep (P.AtLeast 0) Char.isDigit
+        |. P.end
+
+
+{-| Enforce that a field does not contains only numbers.
+-}
+nonnumeric : ValidationFunc
+nonnumeric =
+    F.test
+        (\value ->
+            case P.run nonnumericParser value of
+                Ok _ ->
+                    True
+
+                Err _ ->
+                    False
+        )
+        "Must be numeric"
+
+
+nonnumericParser : P.Parser ()
+nonnumericParser =
+    P.succeed ()
+        |. P.keep (P.AtLeast 0) (Char.isDigit >> not)
         |. P.end
 
 

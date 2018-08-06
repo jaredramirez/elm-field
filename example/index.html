@@ -9339,34 +9339,34 @@ var _user$project$Field$isValid = function (_p3) {
 		return false;
 	}
 };
-var _user$project$Field$withDefault = F2(
-	function ($default, _p6) {
-		var _p7 = _p6;
-		var _p8 = _p7._2;
-		if (_p8.ctor === 'Valid') {
-			return _p7._0;
-		} else {
-			return $default;
-		}
-	});
-var _user$project$Field$toResult = function (_p9) {
+var _user$project$Field$toResult = function (_p6) {
+	var _p7 = _p6;
+	var _p8 = _p7._2;
+	if (_p8.ctor === 'Valid') {
+		return _elm_lang$core$Result$Ok(_p7._0);
+	} else {
+		return _elm_lang$core$Result$Err(_p8._0);
+	}
+};
+var _user$project$Field$toMaybe = function (_p9) {
 	var _p10 = _p9;
 	var _p11 = _p10._2;
 	if (_p11.ctor === 'Valid') {
-		return _elm_lang$core$Result$Ok(_p10._0);
-	} else {
-		return _elm_lang$core$Result$Err(_p11._0);
-	}
-};
-var _user$project$Field$toMaybe = function (_p12) {
-	var _p13 = _p12;
-	var _p14 = _p13._2;
-	if (_p14.ctor === 'Valid') {
-		return _elm_lang$core$Maybe$Just(_p13._0);
+		return _elm_lang$core$Maybe$Just(_p10._0);
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
 };
+var _user$project$Field$withDefault = F2(
+	function ($default, _p12) {
+		var _p13 = _p12;
+		var _p14 = _p13._2;
+		if (_p14.ctor === 'Valid') {
+			return _p13._0;
+		} else {
+			return $default;
+		}
+	});
 var _user$project$Field$extractMetadata = function (_p15) {
 	var _p16 = _p15;
 	return _p16._1;
@@ -9573,6 +9573,30 @@ var _user$project$Field_String$atLeast = function (x) {
 				_elm_lang$core$Basics$toString(x),
 				' characters')));
 };
+var _user$project$Field_String$nonnumericParser = A2(
+	_elm_tools$parser$Parser_ops['|.'],
+	A2(
+		_elm_tools$parser$Parser_ops['|.'],
+		_elm_tools$parser$Parser$succeed(
+			{ctor: '_Tuple0'}),
+		A2(
+			_elm_tools$parser$Parser$keep,
+			_elm_tools$parser$Parser$AtLeast(0),
+			function (_p1) {
+				return !_elm_lang$core$Char$isDigit(_p1);
+			})),
+	_elm_tools$parser$Parser$end);
+var _user$project$Field_String$nonnumeric = A2(
+	_user$project$Field$test,
+	function (value) {
+		var _p2 = A2(_elm_tools$parser$Parser$run, _user$project$Field_String$nonnumericParser, value);
+		if (_p2.ctor === 'Ok') {
+			return true;
+		} else {
+			return false;
+		}
+	},
+	'Must be numeric');
 var _user$project$Field_String$numericParser = A2(
 	_elm_tools$parser$Parser_ops['|.'],
 	A2(
@@ -9587,8 +9611,8 @@ var _user$project$Field_String$numericParser = A2(
 var _user$project$Field_String$numeric = A2(
 	_user$project$Field$test,
 	function (value) {
-		var _p1 = A2(_elm_tools$parser$Parser$run, _user$project$Field_String$numericParser, value);
-		if (_p1.ctor === 'Ok') {
+		var _p3 = A2(_elm_tools$parser$Parser$run, _user$project$Field_String$numericParser, value);
+		if (_p3.ctor === 'Ok') {
 			return true;
 		} else {
 			return false;
@@ -9596,8 +9620,8 @@ var _user$project$Field_String$numeric = A2(
 	},
 	'Must be numeric');
 var _user$project$Field_String$isSymbolWithoutPeriod = function (c) {
-	var _p2 = c;
-	switch (_p2.valueOf()) {
+	var _p4 = c;
+	switch (_p4.valueOf()) {
 		case ',':
 			return true;
 		case '+':
@@ -9667,8 +9691,8 @@ var _user$project$Field_String$emailParser = A2(
 var _user$project$Field_String$email = A2(
 	_user$project$Field$test,
 	function (value) {
-		var _p3 = A2(_elm_tools$parser$Parser$run, _user$project$Field_String$emailParser, value);
-		if (_p3.ctor === 'Ok') {
+		var _p5 = A2(_elm_tools$parser$Parser$run, _user$project$Field_String$emailParser, value);
+		if (_p5.ctor === 'Ok') {
 			return true;
 		} else {
 			return false;
@@ -9828,16 +9852,16 @@ var _user$project$Main$stringFieldConfig = F2(
 				})
 		};
 	});
-var _user$project$Main$not15 = A2(
+var _user$project$Main$notAbc = A2(
 	_user$project$Field$test,
 	function (value) {
-		return (!_elm_lang$core$Native_Utils.eq(value, '15')) ? true : false;
+		return (!_elm_lang$core$Native_Utils.eq(value, 'abc')) ? true : false;
 	},
-	'Extra Info can\'t be \"15\"');
+	'Extra Info can\'t be \"abc\"');
 var _user$project$Main$validateExtraInfo = _user$project$Field_String$optional(
 	function (_p0) {
-		return _user$project$Main$not15(
-			_user$project$Field_String$numeric(_p0));
+		return _user$project$Main$notAbc(
+			_user$project$Field_String$nonnumeric(_p0));
 	});
 var _user$project$Main$validateAge = function (_p1) {
 	return A2(

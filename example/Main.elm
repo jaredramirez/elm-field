@@ -151,19 +151,19 @@ validateAge =
 
 validateExtraInfo : FStr.ValidationFunc
 validateExtraInfo =
-    FStr.optional (FStr.numeric >> not15)
+    FStr.optional (FStr.nonnumeric >> notAbc)
 
 
-not15 : FStr.ValidationFunc
-not15 =
+notAbc : FStr.ValidationFunc
+notAbc =
     F.test
         (\value ->
-            if value /= "15" then
+            if value /= "abc" then
                 True
             else
                 False
         )
-        "Extra Info can't be \"15\""
+        "Extra Info can't be \"abc\""
 
 
 view : Model -> Html Msg
