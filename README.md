@@ -1,8 +1,16 @@
 # elm-field
 
-## Getting Started
-
 This library provides a datatype to model and validate input field data.
+
+## Installation
+
+    $ elm-package install jaredramirez/elm-field
+
+## Documentation
+
+[Full Usage Documentation](http://package.elm-lang.org/packages/jaredramirez/elm-field/latest/Field)
+
+## Getting Started
 
 To use this data type, let's say that you need a sign up form that has a requried name field,
 a required email field, and an age field that must be between 18 & 100 that you need to send
@@ -182,7 +190,3 @@ Finally, wire it into the view!
 In this example, we only use the built-in validators, but it's pretty
 simple to create your own validators too! Take a look at [an example](https://github.com/jaredramirez/elm-field/blob/master/example/Main.elm) to see a
 similar example to the one above but with a custom validator.
-
-## Documentation
-
-[Documentation](http://package.elm-lang.org/packages/jaredramirez/elm-field/latest/Field)
