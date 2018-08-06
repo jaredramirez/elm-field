@@ -1,5 +1,5 @@
 {
-    "version": "1.0.1",
+    "version": "1.0.2",
     "summary": "Handle input field modeling & validaton easily.",
     "repository": "https://github.com/jaredramirez/elm-field.git",
     "license": "BSD3",
