@@ -212,7 +212,7 @@ similar example to the one above but with a custom validator.
 
 # Interacting with fields
 
-@docs init, resetValue, extractValue, resetMetadata, extractMetadata, toMaybe, toResult, withDefault, isValid, isInvalid
+@docs init, resetValue, extractValue, resetMetadata, extractMetadata, withDefault, toMaybe, toResult, isValid, isInvalid
 
 
 # Validation
@@ -228,7 +228,7 @@ import Html exposing (Html)
 can be in. It has take parameters of an error type and a value type.
 
 Unless you're trying to model some unique data you probably won't be using this
-type, but one with the `value` and `error` arguements already applied. Take a look at the [`String`](#String), [`Int`](#Int) and other modules in this package to see some common types already appplied and for examples to modeling your own data.
+type, but one with the `value` and `error` arguements already applied. Take a look at the [`Field.String`](#Field-String), [`Field.Int`](#Field-Int) and [`Field.Float`](#Field-Float) modules to see some common types already appplied and for examples to modeling your own data.
 
 -}
 type Field value error
@@ -305,6 +305,18 @@ extractMetadata (Field _ metadata _) =
     metadata
 
 
+{-| Return the value of a field if it is in a valid status, otherwise get the default value provided
+-}
+withDefault : value -> Field value error -> value
+withDefault default (Field value _ status) =
+    case status of
+        Valid ->
+            value
+
+        Invalid _ ->
+            default
+
+
 {-| Convert a field to a `Maybe`. This discards the `error`.
 -}
 toMaybe : Field value error -> Maybe value
@@ -327,18 +339,6 @@ toResult (Field value _ status) =
 
         Invalid error ->
             Err error
-
-
-{-| Return the value of a field if it is in a valid status, otherwise get the default value provided
--}
-withDefault : value -> Field value error -> value
-withDefault default (Field value _ status) =
-    case status of
-        Valid ->
-            value
-
-        Invalid _ ->
-            default
 
 
 {-| Returns true if the field in currently in a valid state, false otherwise
@@ -380,7 +380,7 @@ otherwise return a field marked as invalid with the provided error. If the field
 then this function just returns the field as it got it. This is to keep the exisitng error, so you can
 chain together validation functions easily.
 
-Look to the [`String`](#String), [`Int`](#Int) and other modules in this package. for pre-created validation functions.
+Look to the [`Field.String`](#Field-String), [`Field.Int`](#Field-Int) and [`Field.Float`](#Field-Float) modules in this package. for pre-created validation functions.
 
 -}
 test : (value -> Bool) -> error -> ValidationFunc value error
