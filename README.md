@@ -4,7 +4,7 @@ This library provides a datatype to model and validate input field data
 
 ## Installation
 
-    $ elm-package install jaredramirez/elm-field
+    $ elm install jaredramirez/elm-field
 
 ## Example
 

@@ -7,7 +7,7 @@ module Field exposing
 
 {-| This library provides a datatype to model and validate input field data.
 
-For an example, take a look at the [ReadMe](http://package.elm-lang.org/packages/jaredramirez/elm-field/latest)
+For an example, take a look at the [README](https://package.elm-lang.org/packages/jaredramirez/elm-field/latest/)
 
 
 # Base
