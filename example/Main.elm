@@ -1,5 +1,6 @@
-module Main exposing (..)
+module Main exposing (Model, Msg(..), init, intFieldConfig, main, notAbc, stringFieldConfig, update, validateAge, validateEmail, validateExtraInfo, validateName, view)
 
+import Browser exposing (Document)
 import Field as F
 import Field.Int as FInt
 import Field.String as FStr
@@ -18,15 +19,20 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    { name = F.init ""
-    , email = F.init ""
-    , age = F.init 0
-    , extraInfo = F.init ""
-    , submittedSuccessfully = False
-    }
-        ! []
+type alias Flags =
+    {}
+
+
+init : Flags -> ( Model, Cmd Msg )
+init _ =
+    ( { name = F.init ""
+      , email = F.init ""
+      , age = F.init 0
+      , extraInfo = F.init ""
+      , submittedSuccessfully = False
+      }
+    , Cmd.none
+    )
 
 
 type Msg
@@ -43,54 +49,59 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SetNameField value ->
-            { model
+            ( { model
                 | name =
                     value
                         |> F.resetValue model.name
                         |> validateName
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         SetEmailField value ->
-            { model
+            ( { model
                 | email =
                     value
                         |> F.resetValue model.email
                         |> validateEmail
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         SetAgeField value ->
-            { model
+            ( { model
                 | age =
                     value
-                        |> (String.toInt >> Result.withDefault 0)
+                        |> (String.toInt >> Maybe.withDefault 0)
                         |> F.resetValue model.age
                         |> validateAge
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         ToggleExtraInfoDisabled ->
             let
                 metadata =
                     F.extractMetadata model.extraInfo
             in
-            { model
+            ( { model
                 | extraInfo =
                     F.resetMetadata
                         model.extraInfo
                         { metadata | disabled = not metadata.disabled }
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         SetExtraInfoField value ->
-            { model
+            ( { model
                 | extraInfo =
                     value
                         |> F.resetValue model.extraInfo
                         |> validateExtraInfo
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         Submit ->
             let
@@ -122,16 +133,17 @@ update msg model =
                               Task.perform SubmitResponse (Task.succeed False)
                             ]
             in
-            { model
+            ( { model
                 | name = name
                 , email = email
                 , age = age
                 , extraInfo = extraInfo
-            }
-                ! cmds
+              }
+            , Cmd.batch cmds
+            )
 
         SubmitResponse response ->
-            { model | submittedSuccessfully = response } ! []
+            ( { model | submittedSuccessfully = response }, Cmd.none )
 
 
 validateName : FStr.ValidationFunc
@@ -160,31 +172,32 @@ notAbc =
         (\value ->
             if value /= "abc" then
                 True
+
             else
                 False
         )
-        "Extra Info can't be \"abc\""
+        "Can't be \"abc\""
 
 
-view : Model -> Html Msg
+view : Model -> List (Html Msg)
 view model =
-    Html.div []
-        [ Html.h1 [] [ Html.text "Sign Up!" ]
-        , F.view (stringFieldConfig "Name" SetNameField) model.name
-        , F.view (stringFieldConfig "Email" SetEmailField) model.email
-        , F.view (intFieldConfig "Age" SetAgeField) model.age
-        , Html.button [ Html.Events.onClick ToggleExtraInfoDisabled ]
-            [ Html.span [] [ Html.text "Toggle Extra Info Disabled" ] ]
-        , F.view (stringFieldConfig "Extra Info" SetExtraInfoField)
-            model.extraInfo
-        , Html.button [ Html.Events.onClick Submit ]
-            [ Html.span [] [ Html.text "Submit" ] ]
-        , Html.div [] <|
-            if model.submittedSuccessfully then
-                [ Html.span [] [ Html.text "Submited Successfully!" ] ]
-            else
-                []
-        ]
+    [ Html.h1 [] [ Html.text "Sign Up!" ]
+    , F.view (stringFieldConfig "Name" SetNameField) model.name
+    , F.view (stringFieldConfig "Email" SetEmailField) model.email
+    , F.view (intFieldConfig "Age" SetAgeField) model.age
+    , Html.button [ Html.Events.onClick ToggleExtraInfoDisabled ]
+        [ Html.span [] [ Html.text "Toggle Extra Info Disabled" ] ]
+    , F.view (stringFieldConfig "Extra Info" SetExtraInfoField)
+        model.extraInfo
+    , Html.button [ Html.Events.onClick Submit ]
+        [ Html.span [] [ Html.text "Submit" ] ]
+    , Html.div [] <|
+        if model.submittedSuccessfully then
+            [ Html.span [] [ Html.text "Submited Successfully!" ] ]
+
+        else
+            []
+    ]
 
 
 stringFieldConfig : String -> (String -> msg) -> FStr.ViewConfig msg
@@ -221,7 +234,7 @@ intFieldConfig title toMsg =
             Html.div []
                 [ Html.input
                     [ Html.Events.onInput toMsg
-                    , Html.Attributes.value (toString value)
+                    , Html.Attributes.value (String.fromInt value)
                     , Html.Attributes.type_ "number"
                     , Html.Attributes.disabled meta.disabled
                     ]
@@ -232,7 +245,7 @@ intFieldConfig title toMsg =
             Html.div []
                 [ Html.input
                     [ Html.Events.onInput toMsg
-                    , Html.Attributes.value (toString value)
+                    , Html.Attributes.value (String.fromInt value)
                     , Html.Attributes.type_ "number"
                     , Html.Attributes.disabled meta.disabled
                     ]
@@ -244,9 +257,11 @@ intFieldConfig title toMsg =
 
 
 main =
-    Html.program
+    Browser.document
         { init = init
-        , view = view
+        , view =
+            \model ->
+                { title = "elm-field example", body = view model }
         , update = update
         , subscriptions = \_ -> Sub.none
         }

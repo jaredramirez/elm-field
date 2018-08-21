@@ -1,11 +1,7 @@
-module Field.Float
-    exposing
-        ( Field
-        , ValidationFunc
-        , ViewConfig
-        , greaterThan
-        , lessThan
-        )
+module Field.Float exposing
+    ( Field, ViewConfig, ValidationFunc
+    , greaterThan, lessThan
+    )
 
 {-| A pre-applied `Float` version of the `Field` type, and validation functions
 to go along with them.
@@ -49,7 +45,7 @@ greaterThan : Float -> ValidationFunc
 greaterThan x =
     F.test
         (\value -> value > x)
-        ("Must be at greater than " ++ toString x)
+        ("Must be at greater than " ++ String.fromFloat x)
 
 
 {-| Enforce that a field is greater than `x`
@@ -58,4 +54,4 @@ lessThan : Float -> ValidationFunc
 lessThan x =
     F.test
         (\value -> value < x)
-        ("Must be at less than " ++ toString x)
+        ("Must be at less than " ++ String.fromFloat x)
