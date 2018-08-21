@@ -43,7 +43,7 @@ type alias ValidationFunc =
 -}
 atLeast : Int -> ValidationFunc
 atLeast x =
-    F.test
+    F.createValidator
         (\value ->
             value
                 |> String.fromInt
@@ -57,7 +57,7 @@ atLeast x =
 -}
 atMost : Int -> ValidationFunc
 atMost x =
-    F.test
+    F.createValidator
         (\value ->
             value
                 |> String.fromInt
@@ -71,7 +71,7 @@ atMost x =
 -}
 greaterThan : Int -> ValidationFunc
 greaterThan x =
-    F.test
+    F.createValidator
         (\value -> value > x)
         ("Must be at greater than " ++ String.fromInt x)
 
@@ -80,7 +80,7 @@ greaterThan x =
 -}
 greaterThanOrEqual : Int -> ValidationFunc
 greaterThanOrEqual x =
-    F.test
+    F.createValidator
         (\value -> value >= x)
         ("Must be at greater than or equal to " ++ String.fromInt x)
 
@@ -89,7 +89,7 @@ greaterThanOrEqual x =
 -}
 lessThan : Int -> ValidationFunc
 lessThan x =
-    F.test
+    F.createValidator
         (\value -> value < x)
         ("Must be at less than " ++ String.fromInt x)
 
@@ -98,6 +98,6 @@ lessThan x =
 -}
 lessThanOrEqual : Int -> ValidationFunc
 lessThanOrEqual x =
-    F.test
+    F.createValidator
         (\value -> value <= x)
         ("Must be at less than or equal to " ++ String.fromInt x)

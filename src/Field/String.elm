@@ -46,7 +46,7 @@ type alias ValidationFunc =
 -}
 notEmpty : ValidationFunc
 notEmpty =
-    F.test ((/=) "") "Can't be empty"
+    F.createValidator ((/=) "") "Can't be empty"
 
 
 {-| Enforce that a field is an email.
@@ -63,7 +63,7 @@ own validation function.
 -}
 email : ValidationFunc
 email =
-    F.test
+    F.createValidator
         (\value ->
             value
                 |> P.run H.emailParser
@@ -76,7 +76,7 @@ email =
 -}
 numeric : ValidationFunc
 numeric =
-    F.test
+    F.createValidator
         (\value ->
             value
                 |> P.run H.numericParser
@@ -89,7 +89,7 @@ numeric =
 -}
 nonnumeric : ValidationFunc
 nonnumeric =
-    F.test
+    F.createValidator
         (\value ->
             value
                 |> P.run H.nonnumericParser
@@ -102,7 +102,7 @@ nonnumeric =
 -}
 atLeast : Int -> ValidationFunc
 atLeast x =
-    F.test (\value -> String.length value >= x)
+    F.createValidator (\value -> String.length value >= x)
         ("Must be at least " ++ String.fromInt x ++ " characters")
 
 
@@ -110,7 +110,7 @@ atLeast x =
 -}
 atMost : Int -> ValidationFunc
 atMost x =
-    F.test (\value -> String.length value <= x)
+    F.createValidator (\value -> String.length value <= x)
         ("Must be at most " ++ String.fromInt x ++ " characters")
 
 
@@ -118,7 +118,7 @@ atMost x =
 -}
 exactly : Int -> ValidationFunc
 exactly x =
-    F.test (\value -> String.length value <= x)
+    F.createValidator (\value -> String.length value <= x)
         ("Must be at exactly " ++ String.fromInt x ++ " characters")
 
 

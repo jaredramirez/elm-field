@@ -1,22 +1,9 @@
-module Field
-    exposing
-        ( Field
-        , Metadata
-        , ValidationFunc
-        , ViewConfig
-        , extractMetadata
-        , extractValue
-        , init
-        , isInvalid
-        , isValid
-        , resetMetadata
-        , resetValue
-        , test
-        , toMaybe
-        , toResult
-        , view
-        , withDefault
-        )
+module Field exposing
+    ( Field, Metadata
+    , ViewConfig, view
+    , init, resetValue, extractValue, resetMetadata, extractMetadata, withDefault, toMaybe, toResult, isValid, isInvalid
+    , ValidationFunc, createValidator
+    )
 
 {-| This library provides a datatype to model and validate input field data.
 
@@ -217,7 +204,7 @@ similar example to the one above but with a custom validator.
 
 # Validation
 
-@docs ValidationFunc, test
+@docs ValidationFunc, createValidator
 
 -}
 
@@ -375,7 +362,7 @@ type alias ValidationFunc value error =
     Field value error -> Field value error
 
 
-{-| Test a field against the provided function. If the field passes then return the field the exact same,
+{-| Create a validator by testing a field against the provided function. If the field passes then return the field the exact same,
 otherwise return a field marked as invalid with the provided error. If the field is already invalid,
 then this function just returns the field as it got it. This is to keep the exisitng error, so you can
 chain together validation functions easily.
@@ -383,12 +370,13 @@ chain together validation functions easily.
 Look to the [`Field.String`](#Field-String), [`Field.Int`](#Field-Int) and [`Field.Float`](#Field-Float) modules in this package. for pre-created validation functions.
 
 -}
-test : (value -> Bool) -> error -> ValidationFunc value error
-test predicate error ((Field value meta status) as field) =
+createValidator : (value -> Bool) -> error -> ValidationFunc value error
+createValidator predicate error ((Field value meta status) as field) =
     case status of
         Valid ->
             if predicate value then
                 field
+
             else
                 Field value meta (Invalid error)
 

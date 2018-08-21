@@ -43,7 +43,7 @@ type alias ValidationFunc =
 -}
 greaterThan : Float -> ValidationFunc
 greaterThan x =
-    F.test
+    F.createValidator
         (\value -> value > x)
         ("Must be at greater than " ++ String.fromFloat x)
 
@@ -52,6 +52,6 @@ greaterThan x =
 -}
 lessThan : Float -> ValidationFunc
 lessThan x =
-    F.test
+    F.createValidator
         (\value -> value < x)
         ("Must be at less than " ++ String.fromFloat x)

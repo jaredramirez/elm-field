@@ -166,7 +166,7 @@ validateExtraInfo =
 
 notAbc : FStr.ValidationFunc
 notAbc =
-    F.test
+    F.createValidator
         (\value ->
             if value /= "abc" then
                 True
