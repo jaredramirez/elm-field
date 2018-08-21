@@ -1,4 +1,4 @@
-module Field.String.Helpers exposing (atLeast, emailParser, isAlphaNum, isSymbol, isSymbolWithoutPeriod, nonnumericParser, numericParser)
+module Field.String.Helpers exposing (atLeast, emailParser, isAlphaNum, isSymbol, isSymbolWithoutPeriod, nonnumericParser, numericParser, resultToBool)
 
 import Char
 import Parser as P exposing ((|.), (|=))
@@ -18,6 +18,20 @@ atLeast number pred =
             else
                 P.chompWhile pred
            )
+
+
+
+-- RESULT HELPERS
+
+
+resultToBool : Result e v -> Bool
+resultToBool r =
+    case r of
+        Ok _ ->
+            True
+
+        Err _ ->
+            False
 
 
 

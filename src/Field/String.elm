@@ -65,16 +65,9 @@ email : ValidationFunc
 email =
     F.test
         (\value ->
-            case P.run H.emailParser value of
-                Ok _ ->
-                    True
-
-                Err error ->
-                    let
-                        e =
-                            Debug.log "error" error
-                    in
-                    False
+            value
+                |> P.run H.emailParser
+                |> H.resultToBool
         )
         "Invalid email"
 
@@ -85,12 +78,9 @@ numeric : ValidationFunc
 numeric =
     F.test
         (\value ->
-            case P.run H.numericParser value of
-                Ok _ ->
-                    True
-
-                Err _ ->
-                    False
+            value
+                |> P.run H.numericParser
+                |> H.resultToBool
         )
         "Must be numeric"
 
@@ -101,12 +91,9 @@ nonnumeric : ValidationFunc
 nonnumeric =
     F.test
         (\value ->
-            case P.run H.nonnumericParser value of
-                Ok _ ->
-                    True
-
-                Err _ ->
-                    False
+            value
+                |> P.run H.nonnumericParser
+                |> H.resultToBool
         )
         "Must be nonnumeric"
 

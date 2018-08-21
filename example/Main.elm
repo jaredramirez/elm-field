@@ -118,20 +118,18 @@ update msg model =
                     validateExtraInfo model.extraInfo
 
                 cmds =
-                    Result.map4
-                        (\nameValue emailValue ageValue extraInfoValue ->
-                            [ -- Mock a server request
-                              Task.perform SubmitResponse (Task.succeed True)
-                            ]
-                        )
-                        (F.toResult name)
-                        (F.toResult email)
-                        (F.toResult age)
-                        (F.toResult extraInfo)
-                        |> Result.withDefault
-                            [ -- Mock a server request
-                              Task.perform SubmitResponse (Task.succeed False)
-                            ]
+                    Result.withDefault [] <|
+                        Result.map4
+                            (\nameValue emailValue ageValue extraInfoValue ->
+                                [ -- Mock a server request
+                                  Task.perform SubmitResponse
+                                    (Task.succeed True)
+                                ]
+                            )
+                            (F.toResult name)
+                            (F.toResult email)
+                            (F.toResult age)
+                            (F.toResult extraInfo)
             in
             ( { model
                 | name = name
