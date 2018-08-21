@@ -127,10 +127,11 @@ if the field's value is not `""`. If the field's value is `""` then this will ju
 field
 -}
 optional : ValidationFunc -> ValidationFunc
-optional validationFunction field =
-    case F.extractValue field of
-        "" ->
-            field
+optional validationFunction =
+    \field ->
+        case F.extractValue field of
+            "" ->
+                field
 
-        _ ->
-            validationFunction field
+            _ ->
+                validationFunction field
