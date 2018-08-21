@@ -2,7 +2,7 @@ module Field exposing
     ( Field, Metadata
     , ViewConfig, view
     , init, resetValue, extractValue, resetMetadata, extractMetadata, withDefault, toMaybe, toResult, isValid, isInvalid
-    , ValidationFunc, createValidator
+    , ValidationFunc, test, createValidator
     )
 
 {-| This library provides a datatype to model and validate input field data.
@@ -204,7 +204,7 @@ similar example to the one above but with a custom validator.
 
 # Validation
 
-@docs ValidationFunc, createValidator
+@docs ValidationFunc, test, createValidator
 
 -}
 
@@ -382,3 +382,10 @@ createValidator predicate error ((Field value meta status) as field) =
 
         Invalid _ ->
             field
+
+
+{-| Alias to [`createValidator`](#createValidator). Deprecated.
+-}
+test : (value -> Bool) -> error -> ValidationFunc value error
+test =
+    createValidator
