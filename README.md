@@ -69,7 +69,7 @@ Next, you add logic to set & validate the fields to your update function
                 { model
                     | age =
                         value
-                            |> (String.toInt >> Result.withDefault 0)
+                            |> (String.toInt >> Maybe.withDefault 0)
                             |> F.resetValue model.age
                             |> validateAge
                 }
@@ -94,12 +94,13 @@ Next, you add logic to set & validate the fields to your update function
                             _ ->
                                 []
                 in
-                { model
+                ( { model
                     | name = name
                     , email = email
                     , age = age
-                }
-                    ! cmds
+                  }
+                , Cmd.batch cmds
+                )
 
 
     validateName : FStr.ValidationFunc
