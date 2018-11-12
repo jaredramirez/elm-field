@@ -28,11 +28,12 @@ First, you can import the package and create the fields in your model
 
     init : ( Model, Cmd Msg )
     init =
-        { name = F.init ""
-        , email = F.init ""
-        , age = F.init 0
-        }
-            ! []
+        ( { name = F.init ""
+          , email = F.init ""
+          , age = F.init 0
+          }
+        , Cmd.none
+        )
 
 Then, you add a few messages to update the fields, and one to submit your form
 
@@ -69,7 +70,8 @@ Next, you add logic to set & validate the fields to your update function
                 { model
                     | age =
                         value
-                            |> (String.toInt >> Maybe.withDefault 0)
+                            |> String.toInt
+                            |> Maybe.withDefault 0
                             |> F.resetValue model.age
                             |> validateAge
                 }
