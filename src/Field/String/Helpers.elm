@@ -47,7 +47,7 @@ emailParser =
                 , end = ""
                 , separator = "."
                 , spaces = P.succeed ()
-                , item = atLeast 1 (\c -> isAlphaNum c)
+                , item = atLeast 1 (\c -> isAlphaNum c || isSymbolWithoutPeriod c)
                 , trailing = P.Forbidden
                 }
                 |> P.andThen
