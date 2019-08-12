@@ -42,10 +42,23 @@ emailParser : P.Parser ()
 emailParser =
     P.succeed ()
         |. atLeast 2 (\c -> isAlphaNum c || isSymbol c)
-        |. P.symbol "@"
-        |. atLeast 2 (\c -> isAlphaNum c || isSymbolWithoutPeriod c)
-        |. P.symbol "."
-        |. atLeast 2 (\c -> isAlphaNum c)
+        |. (P.sequence
+                { start = "@"
+                , end = ""
+                , separator = "."
+                , spaces = P.succeed ()
+                , item = atLeast 1 (\c -> isAlphaNum c)
+                , trailing = P.Forbidden
+                }
+                |> P.andThen
+                    (\list ->
+                        if List.length list < 2 then
+                            P.problem ""
+
+                        else
+                            P.succeed ()
+                    )
+           )
         |. P.end
 
 
